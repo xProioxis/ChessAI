@@ -6,12 +6,28 @@ WINDOW = pygame.display.set_mode((800, 600))
 BLACK = (0, 0, 0)
 RED = (255, 87, 51)
 WHITE = (255, 255, 255)
+GRAY = (105, 105, 105)
 
 square_list = []
 piece_list = []
 
+black_pawn_img = pygame.image.load('Assets/BlackPawn.png')
+red_pawn_img = pygame.image.load('Assets/RedPawn.png')
+black_rook_img = pygame.image.load('Assets/BlackRook.png')
+red_rook_img = pygame.image.load('Assets/RedRook.png')
+black_bishop_img = pygame.image.load('Assets/BlackBishop.png')
+red_bishop_img = pygame.image.load('Assets/RedBishop.png')
+black_knight_img = pygame.image.load('Assets/BlackKnight.png')
+red_knight_img = pygame.image.load('Assets/RedKnight.png')
+black_king_img = pygame.image.load('Assets/BlackKing.png')
+red_king_img = pygame.image.load('Assets/RedKing.png')
+black_queen_img = pygame.image.load('Assets/BlackQueen.png')
+red_queen_img = pygame.image.load('Assets/RedQueen.png')
+
 
 class Square:
+    piece = None
+
     def __init__(self, id, x, y, color):
         self.id = id
         self.x = x
@@ -20,10 +36,11 @@ class Square:
 
 
 class Piece:
-    def __init__(self, x, y, color):
+    def __init__(self, id, img, x, y):
+        self.id = id
+        self.img = img
         self.x = x
         self.y = y
-        self.color = color
 
 
 def make_pieces():
@@ -31,23 +48,55 @@ def make_pieces():
 
 
 def make_squares():
-    global square_list, RED, WHITE
+    global square_list, RED, WHITE, pawn_img
     id_letter = "a"
     is_white = True
+    # defining squares and their methods
     for col in range(200, 800, 75):
         id_num = 8
         for row in range(0, 600, 75):
             if id_num != 8:
-                is_white = not is_white
+                is_white = not is_white # will switch color of square and ensure the same color is never adjacent
             if is_white:
                 curr_color = WHITE
             else:
                 curr_color = RED
 
             new_id = f"{id_num}{id_letter}"
-            square_list.append(Square(new_id, col, row, curr_color))
+            new_square = Square(new_id, col, row, curr_color)
+
+            # setting pieces for each square on board
+            # piece id is formatted as "(piece color)(piece type)"
+            if new_square.id[0] == "7":
+                new_square.piece = Piece("rp", red_pawn_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id[0] == "2":
+                new_square.piece = Piece("bp", black_pawn_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "1a" or new_square.id == "1h":
+                new_square.piece = Piece("br", black_rook_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "8a" or new_square.id == "8h":
+                new_square.piece = Piece("rr", red_rook_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "1c" or new_square.id == "1f":
+                new_square.piece = Piece("bb", black_bishop_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "8c" or new_square.id == "8f":
+                new_square.piece = Piece("rb", red_bishop_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "1b" or new_square.id == "1g":
+                new_square.piece = Piece("bk", black_knight_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "8b" or new_square.id == "8g":
+                new_square.piece = Piece("rk", red_knight_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "1e":
+                new_square.piece = Piece("bK", black_king_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "8e":
+                new_square.piece = Piece("rK", red_king_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "1d":
+                new_square.piece = Piece("bq", black_queen_img, new_square.x - 10, new_square.y - 12.5)
+            elif new_square.id == "8d":
+                new_square.piece = Piece("rq", red_queen_img, new_square.x - 10, new_square.y - 12.5)
+
+            square_list.append(new_square)
+
             id_num -= 1
         id_letter = chr(ord(id_letter) + 1)
+
 
 
 
@@ -55,6 +104,9 @@ def blit_board():
     global RED, WHITE, square_list
     for square in square_list:
         pygame.draw.rect(WINDOW, square.color, (square.x, square.y, 75, 75))
+        if square.piece is not None: # if there is a piece on the square
+            WINDOW.blit(square.piece.img, [square.piece.x, square.piece.y])
+
     pygame.display.update()
 
 
@@ -63,17 +115,16 @@ for i in range(len(square_list)):
     print(square_list[i].id, square_list[i].x, square_list[i].y, square_list[i].color)
 
 
+
 running = True
 while running:
-    WINDOW.fill(BLACK)
+    WINDOW.fill(GRAY)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-
-    WINDOW.fill(BLACK)
     blit_board()
     pygame.display.update()
 
