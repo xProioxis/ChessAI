@@ -126,7 +126,7 @@ def get_path(square):
     if square.piece.id == "bp":
         new_ids = [str(int(square.id[0]) + 1) + square.id[1]]
         for new_square in square_list:
-            if new_square.id in new_ids:
+            if new_square.id in new_ids and new_square.piece is None:
                 possible_spaces.append(new_square)
 
     return tuple(possible_spaces)
@@ -161,6 +161,7 @@ while running:
                     square.piece = Piece(square_active[1].piece.id, square_active[1].piece.img, square.x - piece_x_offset, square.y - piece_y_offset)
                     square_active[1].piece = None
                     square_active = False, None
+                    break
         if pygame.mouse.get_pressed()[2]:
             square_active = False, None
     else:
