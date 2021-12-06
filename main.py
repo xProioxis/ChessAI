@@ -1,5 +1,4 @@
 import pygame
-import time
 
 pygame.init()
 WINDOW = pygame.display.set_mode((800, 600))
@@ -48,8 +47,13 @@ class Piece:
         self.y = y
 
 
-def make_pieces():
-    pass
+def inc(val, inc_val=1):
+    try:
+        val = int(val)
+        return str(val + inc_val)
+
+    except ValueError:
+        return chr(ord(val) + inc_val)
 
 
 def make_squares():
@@ -111,6 +115,13 @@ def blit_board():
             WINDOW.blit(square.piece.img, [square.piece.x, square.piece.y])
 
 
+def blit_highlight(square):
+    pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y, 10, 75))
+    pygame.draw.rect(WINDOW, YELLOW, (square.x + 65, square.y, 10, 75))
+    pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y, 75, 10))
+    pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y + 65, 75, 10))
+
+
 
 def square_selected():
     for square in square_list:
@@ -124,10 +135,87 @@ def get_path(square):
     global square_list
     possible_spaces = []
     if square.piece.id == "bp":
-        new_ids = [str(int(square.id[0]) + 1) + square.id[1]]
         for new_square in square_list:
-            if new_square.id in new_ids and new_square.piece is None:
+            if new_square.id == inc(square.id[0]) + square.id[1] and new_square.piece is None: # move in front
                 possible_spaces.append(new_square)
+            if square.id[0] == "2" and new_square.id == inc(square.id[0], 2) + square.id[1] and new_square.piece is None:
+                possible_spaces.append(new_square)
+            if (new_square.id == inc(square.id[0]) + inc(square.id[1]) or new_square.id == inc(square.id[0]) + inc(square.id[1], -1)) and new_square.piece is not None and new_square.piece.id[0] == "r":
+                possible_spaces.append(new_square)
+
+    elif square.piece.id == "bk":
+        # all possible movements that knight can take, creates list of ids of possible spaces
+        knight_movements = [inc(square.id[0], 2) + inc(square.id[1], 1), inc(square.id[0], 2) + inc(square.id[1], -1),
+                            inc(square.id[0], 1) + inc(square.id[1], 2), inc(square.id[0], 1) + inc(square.id[1], -2),
+                            inc(square.id[0], -1) + inc(square.id[1], 2), inc(square.id[0], -1) + inc(square.id[1], -2),
+                            inc(square.id[0], -2) + inc(square.id[1], 1), inc(square.id[0], -2) + inc(square.id[1], -1)]
+        for new_square in square_list:
+            if new_square.id in knight_movements:
+                if new_square.piece is not None:
+                    if new_square.piece.id[0] == "b":
+                        continue
+                possible_spaces.append(new_square)
+
+    elif square.piece.id == "br":
+        curr_square = square_list.index(square)
+        curr_square_save = curr_square
+
+        # navigating up
+        curr_square -= 1
+        while square_list[curr_square].id[1] == square.id[1]:
+            if square_list[curr_square].piece is not None:
+                if square_list[curr_square].piece.id[0] == "b":
+                    break
+                possible_spaces.append(square_list[curr_square])
+                break
+            if square_list[curr_square].id != square.id:
+                possible_spaces.append(square_list[curr_square])
+
+            curr_square -= 1
+        curr_square = curr_square_save
+
+        # navigating down
+        curr_square += 1
+        while 0 <= curr_square < len(square_list) and square_list[curr_square].id[1] == square.id[1]:
+            if square_list[curr_square].piece is not None:
+                if square_list[curr_square].piece.id[0] == "b":
+                    break
+                possible_spaces.append(square_list[curr_square])
+                break
+            if square_list[curr_square].id != square.id:
+                possible_spaces.append(square_list[curr_square])
+
+            curr_square += 1
+        curr_square = curr_square_save
+
+        # navigating left
+        curr_square -= 8
+        while 0 <= curr_square < len(square_list):
+            if square_list[curr_square].piece is not None:
+                if square_list[curr_square].piece.id[0] == "b":
+                    break
+                possible_spaces.append(square_list[curr_square])
+                break
+            if square_list[curr_square].id != square.id:
+                possible_spaces.append(square_list[curr_square])
+
+            curr_square -= 8
+        curr_square = curr_square_save
+
+        # navigating right
+        curr_square += 8
+        while 0 <= curr_square < len(square_list):
+            if square_list[curr_square].piece is not None:
+                if square_list[curr_square].piece.id[0] == "b":
+                    break
+                possible_spaces.append(square_list[curr_square])
+                break
+            if square_list[curr_square].id != square.id:
+                possible_spaces.append(square_list[curr_square])
+
+            curr_square += 8
+
+
 
     return tuple(possible_spaces)
 
@@ -151,11 +239,8 @@ while running:
 
     if square_active[0]: # if a square is currently being clicked
         if square_active[1].piece is not None:
-            for square in get_path(square_active[1]): # will return the possible space a piece can move
-                pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y, 75, 75))
-                if square.piece is not None:
-                    WINDOW.blit(square.piece.img, (square.x, square.y, square.x - piece_x_offset, square.y - piece_y_offset))
-
+            for square in get_path(square_active[1]): # will return the possible spaces a piece can move
+                blit_highlight(square)
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
                     square.piece = Piece(square_active[1].piece.id, square_active[1].piece.img, square.x - piece_x_offset, square.y - piece_y_offset)
