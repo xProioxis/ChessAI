@@ -153,7 +153,7 @@ def get_path(square):
 
         # the space 2 squares ahead can be added only if this is pawns first move
         # refactor this for red pawn
-        if square.id[0] == "2":
+        if square.id[0] == "2" and new_square in possible_spaces:
             new_square = find_by_id(inc(square.id[0], 2) + square.id[1])
             if new_square.piece is None:
                 possible_spaces.append(new_square)
