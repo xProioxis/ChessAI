@@ -431,6 +431,21 @@ def get_path(square):
                 else:  # if square doe not exists, path has gone off of board and will stop
                     right = False
 
+
+    elif square.piece.id == "bK":  # King
+
+        # values to increment id by
+        around_piece = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+
+        for incs in around_piece:
+            new_square = find_by_id(inc(square.id[0], incs[0]) + inc(square.id[1], incs[1]))
+            if new_square is not None:
+                if new_square.piece is not None:
+                    if new_square.piece.id[0] == "r":
+                        possible_spaces.append(new_square)
+                else:
+                    possible_spaces.append(new_square)
+
     return tuple(possible_spaces)
 
 
