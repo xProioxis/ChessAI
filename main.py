@@ -172,8 +172,6 @@ def get_path(square):
                     possible_spaces.append(new_square)
 
 
-
-
     elif square.piece.id == "bk": # knight
         # all possible movements that knight can take, creates list of ids of possible spaces
         knight_movements = [inc(square.id[0], 2) + inc(square.id[1], 1), inc(square.id[0], 2) + inc(square.id[1], -1),
@@ -248,9 +246,6 @@ def get_path(square):
 
     elif square.piece.id == "bb": # bishop
         curr_square = square_list.index(square)
-        curr_square_save = curr_square
-        possible_ids = []
-        blocked_paths = []
         top_right = True
         top_left = True
         bottom_right = True
@@ -312,6 +307,129 @@ def get_path(square):
                         possible_spaces.append(new_square)
                 else: # if square doe not exists, path has gone off of board and will stop
                     bottom_left = False
+
+    elif square.piece.id == "bq": # queen
+        top_right = True
+        top_left = True
+        bottom_right = True
+        bottom_left = True
+        up = True
+        left = True
+        right = True
+        down = True
+
+        for i in range(1, 9):
+            if top_right:
+                new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            top_right = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            top_right = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    top_right = False
+
+            if top_left:
+                new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], -i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            top_left = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            top_left = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    top_left = False
+
+            if bottom_right:
+                new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            bottom_right = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            bottom_right = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    bottom_right = False
+
+            if bottom_left:
+                new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], -i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            bottom_left = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            bottom_left = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    bottom_left = False
+
+            if up:
+                new_square = find_by_id(inc(square.id[0], i) + square.id[1])
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            up = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            up = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    up = False
+
+            if down:
+                new_square = find_by_id(inc(square.id[0], -i) + square.id[1])
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            down = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            down = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    down = False
+
+            if left:
+                new_square = find_by_id(square.id[0] + inc(square.id[1], -i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            left = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            left = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    left = False
+
+            if right:
+                new_square = find_by_id(square.id[0] + inc(square.id[1], i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == "b":
+                            right = False
+                        elif new_square.piece.id[0] == "r":
+                            possible_spaces.append(new_square)
+                            right = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    right = False
 
     return tuple(possible_spaces)
 
