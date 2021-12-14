@@ -145,13 +145,34 @@ def get_path(square):
     global square_list
     possible_spaces = []
     if square.piece.id == "bp": # pawn
-        for new_square in square_list:
-            if new_square.id == inc(square.id[0]) + square.id[1] and new_square.piece is None: # move in front
+        # space in front
+        new_square = find_by_id(inc(square.id[0]) + square.id[1])
+        if new_square is not None:
+            if new_square.piece is None:
                 possible_spaces.append(new_square)
-            if square.id[0] == "2" and new_square.id == inc(square.id[0], 2) + square.id[1] and new_square.piece is None:
+
+        # the space 2 squares ahead can be added only if this is pawns first move
+        # refactor this for red pawn
+        if square.id[0] == "2":
+            new_square = find_by_id(inc(square.id[0], 2) + square.id[1])
+            if new_square.piece is None:
                 possible_spaces.append(new_square)
-            if (new_square.id == inc(square.id[0]) + inc(square.id[1]) or new_square.id == inc(square.id[0]) + inc(square.id[1], -1)) and new_square.piece is not None and new_square.piece.id[0] == "r":
-                possible_spaces.append(new_square)
+
+        # can move diagonally if piece is present
+        new_square = find_by_id(inc(square.id[0]) + inc(square.id[1], -1))
+        if new_square is not None:
+            if new_square.piece is not None:
+                if new_square.piece.id[0] == "r":
+                    possible_spaces.append(new_square)
+
+        new_square = find_by_id(inc(square.id[0]) + inc(square.id[1]))
+        if new_square is not None:
+            if new_square.piece is not None:
+                if new_square.piece.id[0] == "r":
+                    possible_spaces.append(new_square)
+
+
+
 
     elif square.piece.id == "bk": # knight
         # all possible movements that knight can take, creates list of ids of possible spaces
@@ -291,76 +312,6 @@ def get_path(square):
                         possible_spaces.append(new_square)
                 else: # if square doe not exists, path has gone off of board and will stop
                     bottom_left = False
-
-
-
-
-
-
-
-        '''# navigating top right diagonally
-        if curr_square % 8 != 0:
-            curr_square += 7
-            while 0 <= curr_square < len(square_list):
-                if square_list[curr_square].piece is not None:
-                    if square_list[curr_square].piece.id[0] == "b":
-                        break
-                    possible_spaces.append(square_list[curr_square])
-                    break
-                if square_list[curr_square].id != square.id:
-                    possible_spaces.append(square_list[curr_square])
-
-                curr_square += 7
-
-            curr_square = curr_square_save
-
-
-        # navigating top left diagonally
-        curr_square -= 9
-        while 0 <= curr_square < len(square_list):
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b":
-                    break
-                possible_spaces.append(square_list[curr_square])
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
-
-            curr_square -= 9
-
-        curr_square = curr_square_save
-
-        # navigating bottom right diagonally
-        curr_square += 9
-        while 0 <= curr_square < len(square_list):
-            if square.id[0] == "1": # if bishop is at the bottom of board, cannot move down
-                break
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b":
-                    break
-                possible_spaces.append(square_list[curr_square])
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
-
-                curr_square += 9
-
-        curr_square = curr_square_save
-
-        # navigating bottom left diagonally
-        curr_square -= 7
-        while 0 <= curr_square < len(square_list):
-            if square.id[0] == "1": # if bishop is at the bottom of board, cannot move down
-                break
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b": # path stops once it encounters a piece
-                    break
-                possible_spaces.append(square_list[curr_square]) # can have a path onto one enemy
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
-
-                curr_square -= 7'''
 
     return tuple(possible_spaces)
 
