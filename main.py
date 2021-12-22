@@ -136,7 +136,7 @@ def blit_highlight(square):
 def square_selected():
     for square in square_list:
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
+        if square.piece is not None and square.piece.id[0] == "b" and (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
             return True, square
     return False, None
 
@@ -144,31 +144,46 @@ def square_selected():
 def get_path(square):
     global square_list
     possible_spaces = []
-    if square.piece.id == "bp": # pawn
+    if square.piece.id[1] == "p": # pawn
         # space in front
-        new_square = find_by_id(inc(square.id[0]) + square.id[1])
+        if square.piece.id[0] == "b":
+            new_square = find_by_id(inc(square.id[0]) + square.id[1])
+        else:
+            new_square = find_by_id(inc(square.id[0], -1) + square.id[1])
         if new_square is not None:
             if new_square.piece is None:
                 possible_spaces.append(new_square)
 
         # the space 2 squares ahead can be added only if this is pawns first move
         # refactor this for red pawn
-        if square.id[0] == "2" and new_square in possible_spaces:
+        if square.id[0] == "2" and square.piece.id[0] == "b" and new_square in possible_spaces:
             new_square = find_by_id(inc(square.id[0], 2) + square.id[1])
             if new_square.piece is None:
                 possible_spaces.append(new_square)
 
+        if square.id[0] == "7" and square.piece.id[0] == "r" and new_square in possible_spaces:
+            new_square = find_by_id(inc(square.id[0], -2) + square.id[1])
+            if new_square.piece is None:
+                possible_spaces.append(new_square)
+
+
         # can move diagonally if piece is present
-        new_square = find_by_id(inc(square.id[0]) + inc(square.id[1], -1))
+        if square.piece.id[0] == "b":
+            new_square = find_by_id(inc(square.id[0]) + inc(square.id[1], -1))
+        else:
+            new_square = find_by_id(inc(square.id[0], -1) + inc(square.id[1], -1))
         if new_square is not None:
             if new_square.piece is not None:
-                if new_square.piece.id[0] == "r":
+                if new_square.piece.id[0] != square.piece.id[0]: # if a pawn of the opposite color is present
                     possible_spaces.append(new_square)
 
-        new_square = find_by_id(inc(square.id[0]) + inc(square.id[1]))
+        if square.piece.id[0] == "b":
+            new_square = find_by_id(inc(square.id[0]) + inc(square.id[1]))
+        else:
+            new_square = find_by_id(inc(square.id[0], -1) + inc(square.id[1]))
         if new_square is not None:
             if new_square.piece is not None:
-                if new_square.piece.id[0] == "r":
+                if new_square.piece.id[0] != square.piece.id[0]:
                     possible_spaces.append(new_square)
 
 
@@ -480,6 +495,9 @@ while running:
             square_active = False, None
     else:
         square_active = square_selected() # will determine if square is being clicked
+
+    for new_square in get_path(square_list[1]):
+        blit_highlight(new_square)
 
 
     pygame.display.update()
