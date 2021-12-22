@@ -140,6 +140,10 @@ def square_selected():
             return True, square
     return False, None
 
+def swap_pieces(old_square, new_square):
+    new_square.piece = Piece(old_square.piece.id, old_square.piece.img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+    old_square.piece = None
+
 
 def get_path(square):
     global square_list
@@ -187,7 +191,7 @@ def get_path(square):
                     possible_spaces.append(new_square)
 
 
-    elif square.piece.id == "bk": # knight
+    elif square.piece.id[1] == "k": # knight
         # all possible movements that knight can take, creates list of ids of possible spaces
         knight_movements = [inc(square.id[0], 2) + inc(square.id[1], 1), inc(square.id[0], 2) + inc(square.id[1], -1),
                             inc(square.id[0], 1) + inc(square.id[1], 2), inc(square.id[0], 1) + inc(square.id[1], -2),
@@ -196,11 +200,11 @@ def get_path(square):
         for new_square in square_list:
             if new_square.id in knight_movements:
                 if new_square.piece is not None:
-                    if new_square.piece.id[0] == "b":
+                    if new_square.piece.id[0] == square.piece.id[0]:
                         continue
                 possible_spaces.append(new_square)
 
-    elif square.piece.id == "br": # rook
+    elif square.piece.id[1] == "r": # rook
         curr_square = square_list.index(square)
         curr_square_save = curr_square
 
@@ -208,7 +212,7 @@ def get_path(square):
         curr_square -= 1
         while 0 <= curr_square < len(square_list) and square_list[curr_square].id[1] == square.id[1]:
             if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b":
+                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
                     break
                 possible_spaces.append(square_list[curr_square])
                 break
@@ -222,7 +226,7 @@ def get_path(square):
         curr_square += 1
         while 0 <= curr_square < len(square_list) and square_list[curr_square].id[1] == square.id[1]:
             if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b":
+                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
                     break
                 possible_spaces.append(square_list[curr_square])
                 break
@@ -236,7 +240,7 @@ def get_path(square):
         curr_square -= 8
         while 0 <= curr_square < len(square_list):
             if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b":
+                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
                     break
                 possible_spaces.append(square_list[curr_square])
                 break
@@ -250,7 +254,7 @@ def get_path(square):
         curr_square += 8
         while 0 <= curr_square < len(square_list):
             if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == "b":
+                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
                     break
                 possible_spaces.append(square_list[curr_square])
                 break
@@ -259,7 +263,7 @@ def get_path(square):
 
             curr_square += 8
 
-    elif square.piece.id == "bb": # bishop
+    elif square.piece.id[1] == "b": # bishop
         curr_square = square_list.index(square)
         top_right = True
         top_left = True
@@ -271,23 +275,23 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:  # if opposing piece is of same color
                             top_right = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             top_right = False
                     else:
                         possible_spaces.append(new_square)
-                else: # if square doe not exists, path has gone off of board and will stop
+                else: # if square does not exists, path has gone off of board and will stop
                     top_right = False
 
             if top_left:
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], -i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             top_left = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             top_left = False
                     else:
@@ -299,9 +303,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             bottom_right = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             bottom_right = False
                     else:
@@ -313,9 +317,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], -i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             bottom_left = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             bottom_left = False
                     else:
@@ -323,7 +327,7 @@ def get_path(square):
                 else: # if square doe not exists, path has gone off of board and will stop
                     bottom_left = False
 
-    elif square.piece.id == "bq": # queen
+    elif square.piece.id[1] == "q": # queen
         top_right = True
         top_left = True
         bottom_right = True
@@ -338,9 +342,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]: # if opposing piece is of same color
                             top_right = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             top_right = False
                     else:
@@ -352,9 +356,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], -i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             top_left = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             top_left = False
                     else:
@@ -366,9 +370,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             bottom_right = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             bottom_right = False
                     else:
@@ -380,9 +384,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], -i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             bottom_left = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             bottom_left = False
                     else:
@@ -394,9 +398,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], i) + square.id[1])
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             up = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             up = False
                     else:
@@ -408,9 +412,9 @@ def get_path(square):
                 new_square = find_by_id(inc(square.id[0], -i) + square.id[1])
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             down = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             down = False
                     else:
@@ -422,9 +426,9 @@ def get_path(square):
                 new_square = find_by_id(square.id[0] + inc(square.id[1], -i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             left = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             left = False
                     else:
@@ -436,9 +440,9 @@ def get_path(square):
                 new_square = find_by_id(square.id[0] + inc(square.id[1], i))
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == "b":
+                        if new_square.piece.id[0] == square.piece.id[0]:
                             right = False
-                        elif new_square.piece.id[0] == "r":
+                        else:
                             possible_spaces.append(new_square)
                             right = False
                     else:
@@ -446,8 +450,7 @@ def get_path(square):
                 else:  # if square doe not exists, path has gone off of board and will stop
                     right = False
 
-
-    elif square.piece.id == "bK":  # King
+    elif square.piece.id[1] == "K":  # King
 
         # values to increment id by
         around_piece = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
@@ -456,7 +459,7 @@ def get_path(square):
             new_square = find_by_id(inc(square.id[0], incs[0]) + inc(square.id[1], incs[1]))
             if new_square is not None:
                 if new_square.piece is not None:
-                    if new_square.piece.id[0] == "r":
+                    if new_square.piece.id[0] != square.piece.id[0]:
                         possible_spaces.append(new_square)
                 else:
                     possible_spaces.append(new_square)
@@ -487,8 +490,7 @@ while running:
                 blit_highlight(square)
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
-                    square.piece = Piece(square_active[1].piece.id, square_active[1].piece.img, square.x - piece_x_offset, square.y - piece_y_offset)
-                    square_active[1].piece = None
+                    swap_pieces(square_active[1], square)
                     square_active = False, None
                     break
         if pygame.mouse.get_pressed()[2]:
@@ -496,8 +498,6 @@ while running:
     else:
         square_active = square_selected() # will determine if square is being clicked
 
-    for new_square in get_path(square_list[1]):
-        blit_highlight(new_square)
 
 
     pygame.display.update()
