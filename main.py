@@ -1,7 +1,10 @@
+import time
+
 import pygame
 
 pygame.init()
 WINDOW = pygame.display.set_mode((800, 600))
+pygame.display.set_caption('ChessAI')
 
 BLACK = (0, 0, 0)
 RED = (255, 87, 51)
@@ -29,6 +32,7 @@ red_king_img = pygame.image.load('Assets/RedKing.png')
 black_queen_img = pygame.image.load('Assets/BlackQueen.png')
 red_queen_img = pygame.image.load('Assets/RedQueen.png')
 
+pygame.display.set_icon(red_knight_img)
 
 class Square:
     piece = None
@@ -467,6 +471,32 @@ def get_path(square):
     return tuple(possible_spaces)
 
 
+def in_check(board = square_list):
+    for new_square in board:
+        if new_square.piece is not None:
+            for path in get_path(new_square):
+                if path.piece is not None and path.piece.id[1] == "K":
+                    return path.piece.id[0]
+    return False
+
+
+def simulate_board(old_square, new_square, board=square_list):
+    old_idx = board.index(old_square)
+    new_idx = board.index(new_square)
+    curr_board = list(board)
+    curr_board[old_idx], curr_board[new_idx] = curr_board[new_idx], curr_board[old_idx]
+    return curr_board
+
+
+def AI_Player():
+    for new_square in square_list:
+        if new_square.piece is not None and new_square.piece.id[0] == "r":
+            for path in get_path(new_square):
+                if path.piece is not None:
+                    swap_pieces(new_square, path)
+                    return
+    return
+
 make_squares()
 for i in range(len(square_list)):
     print(square_list[i].id, square_list[i].x, square_list[i].y, square_list[i].color)
@@ -474,6 +504,7 @@ for i in range(len(square_list)):
 
 running = True
 square_active = False, None
+human_playing = True
 while running:
     WINDOW.fill(GRAY)
     blit_board()
@@ -484,19 +515,26 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
-    if square_active[0]: # if a square is currently being clicked
-        if square_active[1].piece is not None:
-            for square in get_path(square_active[1]): # will return the possible spaces a piece can move
-                blit_highlight(square)
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
-                    swap_pieces(square_active[1], square)
-                    square_active = False, None
-                    break
-        if pygame.mouse.get_pressed()[2]:
-            square_active = False, None
+    if human_playing:
+        if square_active[0]: # if a square is currently being clicked
+            if square_active[1].piece is not None:
+                for square in get_path(square_active[1]): # will return the possible spaces a piece can move
+                    blit_highlight(square)
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0] and in_check(simulate_board(square_active[1], square)) != "b":
+                        swap_pieces(square_active[1], square)
+                        square_active = False, None
+                        human_playing = False
+                        time.sleep(.1)
+                        break
+            if pygame.mouse.get_pressed()[2]:
+                square_active = False, None
+        else:
+            square_active = square_selected() # will determine if square is being clicked
+
     else:
-        square_active = square_selected() # will determine if square is being clicked
+        AI_Player()
+        human_playing = True
 
 
 
