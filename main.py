@@ -12,11 +12,14 @@ WHITE = (255, 255, 255)
 GRAY = (105, 105, 105)
 YELLOW = (255, 240, 31)
 
-square_list = []
+square_list = [] # will act as the main board
+side_square_list = []
 piece_list = []
 
 piece_x_offset = 10
-piece_y_offset = 12.
+piece_y_offset = 12
+side_piece_offset_x = 10
+side_piece_offset_y = 12
 board_border = [0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 24, 32, 40, 48, 56, 15, 23, 31, 39, 47, 55, 63, 57, 58, 59, 60, 61, 62]
 
 black_pawn_img = pygame.image.load('Assets/BlackPawn.png')
@@ -119,13 +122,36 @@ def make_squares():
             id_num -= 1
         id_letter = chr(ord(id_letter) + 1)
 
+def make_side_squares():
+    global side_square_list, GRAY
+    curr_num = "1"
+    curr_letter = "a"
+    for y in range(15, 115, 50):
+        for x in range(0, 176, 25):
+            side_square_list.append(Square(curr_num + curr_letter, x, y, GRAY))
+            inc(curr_letter)
+        inc(curr_num)
+
+    curr_num = "3"
+    curr_letter = "a"
+    for y in range(500, 600, 50):
+        for x in range(0, 176, 25):
+            side_square_list.append(Square(curr_num + curr_letter, x, y, GRAY))
+            inc(curr_letter)
+        inc(curr_num)
+
 
 def blit_board():
-    global RED, WHITE, square_list
+    global RED, WHITE, square_list, side_square_list
     for square in square_list:
         pygame.draw.rect(WINDOW, square.color, (square.x, square.y, 75, 75))
         if square.piece is not None: # if there is a piece on the square
             WINDOW.blit(square.piece.img, [square.piece.x, square.piece.y])
+
+    for square in side_square_list:
+        pygame.draw.rect(WINDOW, square.color, (square.x, square.y, 25, 100))
+        if square.piece is not None:  # if there is a piece on the square
+            WINDOW.blit(pygame.transform.scale(square.piece.img, (40, 40)), [square.piece.x, square.piece.y])
 
 
 def blit_highlight(square):
@@ -135,6 +161,21 @@ def blit_highlight(square):
     pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y + 65, 75, 10))
 
 
+def update_side_panel(square):
+    global side_square_list, side_piece_offset_x, side_piece_offset_y
+
+    if square.piece is None:
+        return
+
+    if square.piece.id[0] == "r":
+        idx = 16
+    else:
+        idx = 0
+
+    while side_square_list[idx].piece is not None: # searching for the next empty square
+        idx += 1
+    side_square_list[idx].piece = Piece(square.piece.id, square.piece.img, side_square_list[idx].x - side_piece_offset_x, side_square_list[idx].y - side_piece_offset_y)
+
 
 def square_selected():
     for square in square_list:
@@ -142,6 +183,7 @@ def square_selected():
         if square.piece is not None and square.piece.id[0] == "b" and (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
             return True, square
     return False, None
+
 
 def swap_pieces(old_square, new_square):
     new_square.piece = Piece(old_square.piece.id, old_square.piece.img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
@@ -511,12 +553,14 @@ def AI_Player():
         if new_square.piece is not None and new_square.piece.id[0] == "r":
             for path in get_path(new_square, square_list):
                 if path.piece is not None:
+                    update_side_panel(path)
                     swap_pieces(new_square, path)
                     return
     return
 
 
 make_squares()
+make_side_squares()
 # for i in range(len(square_list)):
 #   print(square_list[i].id, square_list[i].x, square_list[i].y, square_list[i].color)
 
@@ -542,6 +586,7 @@ while running:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
                         if in_check(simulate_board(square_active[1], square, square_list)) != "b":
+                            update_side_panel(square)
                             swap_pieces(square_active[1], square)
                             square_active = False, None
                             human_playing = False
