@@ -3,8 +3,10 @@ import time
 import pygame
 
 pygame.init()
+pygame.font.init()
 WINDOW = pygame.display.set_mode((800, 600))
 pygame.display.set_caption('ChessAI')
+font = pygame.font.SysFont('BebasNeue-Regular.ttf', 40)
 
 BLACK = (0, 0, 0)
 RED = (255, 87, 51)
@@ -116,11 +118,11 @@ def make_squares():
                 new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
             elif new_square.id == "8d":
                 new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
-
             square_list.append(new_square)
 
             id_num -= 1
         id_letter = chr(ord(id_letter) + 1)
+
 
 def make_side_squares():
     global side_square_list, GRAY
@@ -556,19 +558,41 @@ def checkmate(id, board):
 
     return True
 
+
+def game_over(winner):
+    global font
+    on_end_screen = True
+    while on_end_screen:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                on_end_screen = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    on_end_screen = False
+        blit_board()
+        checkmate_text = font.render("Checkmate!", True, BLACK)
+        game_over_text = font.render(winner + " Wins!", True, BLACK)
+        WINDOW.blit(checkmate_text, (20, 275))
+        WINDOW.blit(game_over_text, (22.5, 300))
+        pygame.display.update()
+
+    pygame.quit()
+
 def AI_Player():
     global square_list
     if not checkmate("r", square_list):
         for new_square in square_list:
             if new_square.piece is not None and new_square.piece.id[0] == "r":
                 for path in get_path(new_square, square_list):
+                    if path.piece is not None and square.piece.id[1] == "K":
+                        continue
                     if path.piece is not None:
                         update_side_panel(path)
                         swap_pieces(new_square, path)
                         return
         return
     else:
-        print("CHECKMATE")
+        game_over("Black")
         return
 
 
@@ -599,6 +623,8 @@ while running:
                         blit_highlight(square)
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
+                            if square.piece is not None and square.piece.id[1] == "K":
+                                continue
                             if in_check(simulate_board(square_active[1], square, square_list)) != "b":
                                 update_side_panel(square)
                                 swap_pieces(square_active[1], square)
@@ -612,7 +638,7 @@ while running:
             else:
                 square_active = square_selected() # will determine if square is being clicked
         else:
-            print("CHECKMATE")
+            game_over("Red")
 
     else:
         AI_Player()
