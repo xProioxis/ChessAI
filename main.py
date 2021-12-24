@@ -547,16 +547,29 @@ def simulate_board(old_square, new_square, board):
     return tuple(new_board)
 
 
+def checkmate(id, board):
+    for itr_square in board:
+        if itr_square.piece is not None and itr_square.piece.id[0] == id:
+            for path in get_path(itr_square, board):
+                if in_check(simulate_board(itr_square, path, board)) != id:
+                    return False
+
+    return True
+
 def AI_Player():
     global square_list
-    for new_square in square_list:
-        if new_square.piece is not None and new_square.piece.id[0] == "r":
-            for path in get_path(new_square, square_list):
-                if path.piece is not None:
-                    update_side_panel(path)
-                    swap_pieces(new_square, path)
-                    return
-    return
+    if not checkmate("r", square_list):
+        for new_square in square_list:
+            if new_square.piece is not None and new_square.piece.id[0] == "r":
+                for path in get_path(new_square, square_list):
+                    if path.piece is not None:
+                        update_side_panel(path)
+                        swap_pieces(new_square, path)
+                        return
+        return
+    else:
+        print("CHECKMATE")
+        return
 
 
 make_squares()
@@ -579,23 +592,27 @@ while running:
                 running = False
 
     if human_playing:
-        if square_active[0]: # if a square is currently being clicked
-            if square_active[1].piece is not None:
-                for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
-                    blit_highlight(square)
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
-                        if in_check(simulate_board(square_active[1], square, square_list)) != "b":
-                            update_side_panel(square)
-                            swap_pieces(square_active[1], square)
-                            square_active = False, None
-                            human_playing = False
-                            time.sleep(.1)
-                            break
-            if pygame.mouse.get_pressed()[2]:
-                square_active = False, None
+        if not checkmate("b", square_list):
+            if square_active[0]: # if a square is currently being clicked
+                if square_active[1].piece is not None:
+                    for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
+                        blit_highlight(square)
+                        mouse_x, mouse_y = pygame.mouse.get_pos()
+                        if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
+                            if in_check(simulate_board(square_active[1], square, square_list)) != "b":
+                                update_side_panel(square)
+                                swap_pieces(square_active[1], square)
+                                square_active = False, None
+                                human_playing = False
+                                time.sleep(.1)
+                                break
+
+                if pygame.mouse.get_pressed()[2]:
+                    square_active = False, None
+            else:
+                square_active = square_selected() # will determine if square is being clicked
         else:
-            square_active = square_selected() # will determine if square is being clicked
+            print("CHECKMATE")
 
     else:
         AI_Player()
