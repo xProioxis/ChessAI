@@ -70,6 +70,7 @@ def find_by_id(id):
     return None
 
 
+
 def make_squares():
     global square_list, RED, WHITE, pawn_img, piece_x_offset, piece_y_offset
     id_letter = "a"
@@ -209,66 +210,70 @@ def get_path(square):
                 possible_spaces.append(new_square)
 
     elif square.piece.id[1] == "r": # rook
-        curr_square = square_list.index(square)
-        curr_square_save = curr_square
+        up = True
+        left = True
+        right = True
+        down = True
 
-        # navigating up
-        curr_square -= 1
-        while 0 <= curr_square < len(square_list) and square_list[curr_square].id[1] == square.id[1]:
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
-                    break
-                possible_spaces.append(square_list[curr_square])
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
+        for i in range(1, 9):
+            if up:
+                new_square = find_by_id(inc(square.id[0], i) + square.id[1])
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == square.piece.id[0]:
+                            up = False
+                        else:
+                            possible_spaces.append(new_square)
+                            up = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    up = False
 
-            curr_square -= 1
-        curr_square = curr_square_save
+            if down:
+                new_square = find_by_id(inc(square.id[0], -i) + square.id[1])
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == square.piece.id[0]:
+                            down = False
+                        else:
+                            possible_spaces.append(new_square)
+                            down = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    down = False
 
-        # navigating down
-        curr_square += 1
-        while 0 <= curr_square < len(square_list) and square_list[curr_square].id[1] == square.id[1]:
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
-                    break
-                possible_spaces.append(square_list[curr_square])
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
+            if left:
+                new_square = find_by_id(square.id[0] + inc(square.id[1], -i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == square.piece.id[0]:
+                            left = False
+                        else:
+                            possible_spaces.append(new_square)
+                            left = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    left = False
 
-            curr_square += 1
-        curr_square = curr_square_save
+            if right:
+                new_square = find_by_id(square.id[0] + inc(square.id[1], i))
+                if new_square is not None:
+                    if new_square.piece is not None:
+                        if new_square.piece.id[0] == square.piece.id[0]:
+                            right = False
+                        else:
+                            possible_spaces.append(new_square)
+                            right = False
+                    else:
+                        possible_spaces.append(new_square)
+                else:  # if square doe not exists, path has gone off of board and will stop
+                    right = False
 
-        # navigating left
-        curr_square -= 8
-        while 0 <= curr_square < len(square_list):
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
-                    break
-                possible_spaces.append(square_list[curr_square])
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
-
-            curr_square -= 8
-        curr_square = curr_square_save
-
-        # navigating right
-        curr_square += 8
-        while 0 <= curr_square < len(square_list):
-            if square_list[curr_square].piece is not None:
-                if square_list[curr_square].piece.id[0] == square.piece.id[0]:
-                    break
-                possible_spaces.append(square_list[curr_square])
-                break
-            if square_list[curr_square].id != square.id:
-                possible_spaces.append(square_list[curr_square])
-
-            curr_square += 8
 
     elif square.piece.id[1] == "b": # bishop
-        curr_square = square_list.index(square)
         top_right = True
         top_left = True
         bottom_right = True
@@ -471,7 +476,7 @@ def get_path(square):
     return tuple(possible_spaces)
 
 
-def in_check(board = square_list):
+def in_check(board):
     for new_square in board:
         if new_square.piece is not None:
             for path in get_path(new_square):
@@ -480,13 +485,15 @@ def in_check(board = square_list):
     return False
 
 
-def simulate_board(old_square, new_square, board=square_list):
-    old_idx = board.index(old_square)
-    new_idx = board.index(new_square)
-    curr_board = list(board)
-    curr_board[old_idx], curr_board[new_idx] = curr_board[new_idx], curr_board[old_idx]
-    return curr_board
+def simulate_board(old_square, new_square, board):
+    new_board = []
+    for itr_square in board:
+        curr_square = Square(itr_square.id, itr_square.x, itr_square.y, itr_square.color)
+        if itr_square.piece is not None:
+            curr_square.piece = Piece(itr_square.piece.id, itr_square.piece.img, itr_square.piece.x, itr_square.piece.y)
+        new_board.append(curr_square)
 
+    return tuple(new_board)
 
 def AI_Player():
     for new_square in square_list:
@@ -521,7 +528,7 @@ while running:
                 for square in get_path(square_active[1]): # will return the possible spaces a piece can move
                     blit_highlight(square)
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0] and in_check(simulate_board(square_active[1], square)) != "b":
+                    if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0] and in_check(simulate_board(square_active[1], square, square_list)) != "b":
                         swap_pieces(square_active[1], square)
                         square_active = False, None
                         human_playing = False
