@@ -1,3 +1,4 @@
+import random
 import time
 
 import pygame
@@ -17,6 +18,7 @@ YELLOW = (255, 240, 31)
 square_list = [] # will act as the main board
 side_square_list = []
 piece_list = []
+total_moves = 0
 
 piece_x_offset = 10
 piece_y_offset = 12
@@ -50,11 +52,12 @@ class Square:
 
 
 class Piece:
-    def __init__(self, id, img, x, y):
+    def __init__(self, id, img, x, y, val):
         self.id = id
         self.img = img
         self.x = x
         self.y = y
+        self.value = val
 
 
 def inc(val, inc_val=1):
@@ -95,29 +98,29 @@ def make_squares():
             # setting pieces for each square on board
             # piece id is formatted as "(piece color)(piece type)"
             if new_square.id[0] == "7":
-                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 1)
             elif new_square.id[0] == "2":
-                new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 1)
             elif new_square.id == "1a" or new_square.id == "1h":
-                new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 5)
             elif new_square.id == "8a" or new_square.id == "8h":
-                new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 5)
             elif new_square.id == "1c" or new_square.id == "1f":
-                new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
             elif new_square.id == "8c" or new_square.id == "8f":
-                new_square.piece = Piece("rb", red_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("rb", red_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
             elif new_square.id == "1b" or new_square.id == "1g":
-                new_square.piece = Piece("bk", black_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("bk", black_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
             elif new_square.id == "8b" or new_square.id == "8g":
-                new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
             elif new_square.id == "1e":
-                new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, float("inf"))
             elif new_square.id == "8e":
-                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, float("inf"))
             elif new_square.id == "1d":
-                new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
             elif new_square.id == "8d":
-                new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+                new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
             square_list.append(new_square)
 
             id_num -= 1
@@ -176,7 +179,7 @@ def update_side_panel(square):
 
     while side_square_list[idx].piece is not None: # searching for the next empty square
         idx += 1
-    side_square_list[idx].piece = Piece(square.piece.id, square.piece.img, side_square_list[idx].x - side_piece_offset_x, side_square_list[idx].y - side_piece_offset_y)
+    side_square_list[idx].piece = Piece(square.piece.id, square.piece.img, side_square_list[idx].x - side_piece_offset_x, side_square_list[idx].y - side_piece_offset_y, square.piece.value)
 
 
 def square_selected():
@@ -188,7 +191,7 @@ def square_selected():
 
 
 def swap_pieces(old_square, new_square):
-    new_square.piece = Piece(old_square.piece.id, old_square.piece.img, new_square.x - piece_x_offset, new_square.y - piece_y_offset)
+    new_square.piece = Piece(old_square.piece.id, old_square.piece.img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, old_square.piece.value)
     old_square.piece = None
 
 
@@ -533,7 +536,7 @@ def simulate_board(old_square, new_square, board):
     for itr_square in board:
         curr_square = Square(itr_square.id, itr_square.x, itr_square.y, itr_square.color)
         if itr_square.piece is not None:
-            curr_square.piece = Piece(itr_square.piece.id, itr_square.piece.img, itr_square.piece.x, itr_square.piece.y)
+            curr_square.piece = Piece(itr_square.piece.id, itr_square.piece.img, itr_square.piece.x, itr_square.piece.y, itr_square.piece.value)
         new_board.append(curr_square)
 
     swap_pieces(find_by_id(old_square.id, new_board), find_by_id(new_square.id, new_board))
@@ -579,18 +582,61 @@ def game_over(winner):
 
     pygame.quit()
 
+
+# update_side_panel(path)                  swap_pieces(new_square, path)
+
+'''def predict_move(id, board):
+    global total_moves
+    if total_moves <= 3:
+        opposite_pawns = []
+        for itr_square in board:
+            if itr_square.piece is not None and itr_square.piece.id[0] == id and itr_square.piece.id[1] == "p":
+                opposite_pawns.append(itr_square)
+            potential_moves = get_path(opposite_pawns[random.randint(0, len(opposite_pawns)-1)], board)
+            return potential_moves[random.randint(0, len(potential_moves)-1)]
+                
+        best_move = None
+        best_score = float("-inf")
+        for itr_square in board:
+            if itr_square.piece is not None and itr_square.piece.id[0] == "b":
+                for path in get_path(itr_square, board):'''
+
+
+
 def AI_Player():
-    global square_list
+    global square_list, total_moves
+    total_moves += 1
+    ai_possible_moves = []
     if not checkmate("r", square_list):
         for new_square in square_list:
             if new_square.piece is not None and new_square.piece.id[0] == "r":
                 for path in get_path(new_square, square_list):
-                    if path.piece is not None and square.piece.id[1] == "K":
+                    if path.piece is not None and path.piece.id[1] == "K":
                         continue
-                    if path.piece is not None:
-                        update_side_panel(path)
-                        swap_pieces(new_square, path)
-                        return
+                    ai_possible_moves.append([new_square, path])
+
+        # this section calculates the point advantage to moving pieces to certain spaces
+        best_move = None
+        best_score = float("-inf")
+        for x in range(len(ai_possible_moves)):
+            curr_score = 0
+            curr_square = ai_possible_moves[x][0]
+            next_square = ai_possible_moves[x][1]
+            #for i in range(8):
+                #curr_score +=
+
+            if ai_possible_moves[x][1].piece is None:
+                curr_score = 0 - ai_possible_moves[x][0].piece.value
+            else:
+                curr_score = ai_possible_moves[x][1].piece.value - ai_possible_moves[x][0].piece.value # prioritizes moving least valuable pieces first
+
+            if curr_score > best_score:
+                best_score = curr_score
+                best_move = ai_possible_moves[x]
+
+        # best_move becomes the best combination of [current red piece,(and) next square for red piece to land on]
+        update_side_panel(best_move[1])
+        swap_pieces(best_move[0], best_move[1])
         return
     else:
         game_over("Black")
@@ -628,6 +674,7 @@ while running:
                             if square.piece is not None and square.piece.id == "rK":
                                 continue
                             if in_check(simulate_board(square_active[1], square, square_list)) != "b":
+                                total_moves += 1
                                 update_side_panel(square)
                                 swap_pieces(square_active[1], square)
                                 square_active = False, None
