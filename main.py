@@ -634,6 +634,16 @@ def AI_Player():
                 best_score = curr_score
                 best_move = ai_possible_moves[x]
 
+        if best_move[0].piece.id[1] == "p" and best_move[0].id[0] == "7" and best_score == -1:
+            all_pawns = []
+            for itr_square in ai_possible_moves:
+                if itr_square[0].piece.id == "rp":
+                    all_pawns.append(itr_square)
+
+            random_num = random.randint(0, len(all_pawns) - 1)
+            print(random_num)
+            best_move = all_pawns[random_num]
+
         # best_move becomes the best combination of [current red piece,(and) next square for red piece to land on]
         update_side_panel(best_move[1])
         swap_pieces(best_move[0], best_move[1])
