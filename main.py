@@ -244,7 +244,7 @@ def get_path(square, board):
                             inc(square.id[0], 1) + inc(square.id[1], 2), inc(square.id[0], 1) + inc(square.id[1], -2),
                             inc(square.id[0], -1) + inc(square.id[1], 2), inc(square.id[0], -1) + inc(square.id[1], -2),
                             inc(square.id[0], -2) + inc(square.id[1], 1), inc(square.id[0], -2) + inc(square.id[1], -1)]
-        for new_square in square_list:
+        for new_square in board:
             if new_square.id in knight_movements:
                 if new_square.piece is not None:
                     if new_square.piece.id[0] == square.piece.id[0]:
@@ -528,6 +528,7 @@ def in_check(board):
 
 
 def simulate_board(old_square, new_square, board):
+    # creates a hypothetical board if two pieces are switched
     new_board = []
     for itr_square in board:
         curr_square = Square(itr_square.id, itr_square.x, itr_square.y, itr_square.color)
@@ -615,6 +616,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
+
     if human_playing:
         if not checkmate("b", square_list):
             if square_active[0]: # if a square is currently being clicked
@@ -623,7 +625,7 @@ while running:
                         blit_highlight(square)
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
-                            if square.piece is not None and square.piece.id[1] == "K":
+                            if square.piece is not None and square.piece.id == "rK":
                                 continue
                             if in_check(simulate_board(square_active[1], square, square_list)) != "b":
                                 update_side_panel(square)
