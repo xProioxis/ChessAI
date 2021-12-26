@@ -272,7 +272,7 @@ def get_path(square, board):
                             up = False
                     else:
                         possible_spaces.append(new_square)
-                else:  # if square doe not exists, path has gone off of board and will stop
+                else:  # if square does not exists, path has gone off of board and will stop
                     up = False
 
             if down:
@@ -602,52 +602,102 @@ def game_over(winner):
                 for path in get_path(itr_square, board):'''
 
 
+def get_pieces_paths(id, board):
+    possible_moves = []
+    if checkmate(id, board) != id:
+        for new_square in board:
+            if new_square.piece is not None and new_square.piece.id[0] == id:
+                for path in get_path(new_square, board):
+                    if path.piece is not None and path.piece.id[1] == "K": # fix this to allow it to get out of check
+                        continue
+                    possible_moves.append([new_square, path])
+
+    return possible_moves
+
+
+def predict_best_move(id, board):
+    # this section calculates the point advantage to moving pieces to certain spaces
+    possible_moves = get_pieces_paths(id, board)
+    best_move = None
+    best_score = float("-inf")
+    for x in range(len(possible_moves)):
+        curr_score = 0
+
+        if possible_moves[x][1].piece is None:  # initial values of moving, first instance of calculating choice value
+            curr_score += 0 - possible_moves[x][0].piece.value
+        else:
+            curr_score += possible_moves[x][1].piece.value - possible_moves[x][0].piece.value  # prioritizes moving least valuable pieces first
+
+        if curr_score > best_score:
+            best_score = curr_score
+            best_move = possible_moves[x]
+
+    if best_move[0].piece.id[1] == "p" and best_move[0].id[0] == "7" and best_score == -1:
+        all_pawns = []
+        for itr_square in possible_moves:
+            if itr_square[0].piece.id == "rp":
+                all_pawns.append(itr_square)
+
+        random_num = random.randint(0, len(all_pawns) - 1)
+        best_move = all_pawns[random_num]
+
+    return best_move, best_score
+
+
+def path_values(id, board):
+    best_move = None
+    best_move_total = float("-inf")
+
+    for itr_square in get_pieces_paths(id, board):
+        potential_board = simulate_board(itr_square[0], itr_square[1], board)
+        if in_check(board) == id:
+            # if currently in check, next move must get king out of check or else it wont be considered
+            if in_check(potential_board) == id:
+                continue
+
+        if in_check(potential_board) == id: # cannot move into check, move will not be considered
+            continue
+
+        if itr_square[1].piece is None:  # initial values of moving, first instance of calculating choice value
+            curr_score = 0 - itr_square[0].piece.value
+        else:
+            curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
+
+        # the best move for the enemy to take after this potential move has been executed
+        # second instance of calculating choice value
+        enemy_id = "b" if id == "r" else "r"
+        enemy_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
+        curr_move_total = curr_score - enemy_move[1]
+
+        if curr_move_total > best_move_total:
+            best_move_total = curr_move_total
+            best_move = itr_square
+
+    return best_move, best_move_total
+
 
 def AI_Player():
-    global square_list, total_moves
-    total_moves += 1
-    ai_possible_moves = []
+    global square_list
+    ai_possible_moves = []  # will contain all red pieces and their paths
+
     if not checkmate("r", square_list):
-        for new_square in square_list:
-            if new_square.piece is not None and new_square.piece.id[0] == "r":
-                for path in get_path(new_square, square_list):
-                    if path.piece is not None and path.piece.id[1] == "K":
-                        continue
-                    ai_possible_moves.append([new_square, path])
-
         # this section calculates the point advantage to moving pieces to certain spaces
-        best_move = None
-        best_score = float("-inf")
-        for x in range(len(ai_possible_moves)):
-            curr_score = 0
-            curr_square = ai_possible_moves[x][0]
-            next_square = ai_possible_moves[x][1]
-            #for i in range(8):
-                #curr_score +=
+        best_move = path_values("r", square_list)
 
-            if ai_possible_moves[x][1].piece is None:
-                curr_score = 0 - ai_possible_moves[x][0].piece.value
-            else:
-                curr_score = ai_possible_moves[x][1].piece.value - ai_possible_moves[x][0].piece.value # prioritizes moving least valuable pieces first
-
-            if curr_score > best_score:
-                best_score = curr_score
-                best_move = ai_possible_moves[x]
-
-        if best_move[0].piece.id[1] == "p" and best_move[0].id[0] == "7" and best_score == -1:
-            all_pawns = []
-            for itr_square in ai_possible_moves:
-                if itr_square[0].piece.id == "rp":
-                    all_pawns.append(itr_square)
-
-            random_num = random.randint(0, len(all_pawns) - 1)
-            print(random_num)
-            best_move = all_pawns[random_num]
+        '''if best_move[0][0].piece.id[1] == "p" and best_move[0][0].id[0] == "7" and best_move[1] == 0:
+                all_pawns = []
+                for itr_square in :
+                    if itr_square[0].piece.id == "rp":
+                        all_pawns.append(itr_square)
+    
+                random_num = random.randint(0, len(all_pawns) - 1)
+                best_move = all_pawns[random_num]'''
 
         # best_move becomes the best combination of [current red piece,(and) next square for red piece to land on]
-        update_side_panel(best_move[1])
-        swap_pieces(best_move[0], best_move[1])
+        update_side_panel(best_move[0][1])
+        swap_pieces(best_move[0][0], best_move[0][1])
         return
+
     else:
         game_over("Black")
         return
@@ -671,7 +721,6 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-
 
     if human_playing:
         if not checkmate("b", square_list):
