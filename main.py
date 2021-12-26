@@ -12,7 +12,7 @@ font = pygame.font.SysFont('BebasNeue-Regular.ttf', 40)
 BLACK = (0, 0, 0)
 RED = (255, 87, 51)
 WHITE = (255, 255, 255)
-GRAY = (105, 105, 105)
+Green = (0, 97, 62)
 YELLOW = (255, 240, 31)
 
 square_list = [] # will act as the main board
@@ -40,6 +40,7 @@ black_queen_img = pygame.image.load('Assets/BlackQueen.png')
 red_queen_img = pygame.image.load('Assets/RedQueen.png')
 
 pygame.display.set_icon(red_knight_img)
+
 
 class Square:
     piece = None
@@ -114,9 +115,9 @@ def make_squares():
             elif new_square.id == "8b" or new_square.id == "8g":
                 new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
             elif new_square.id == "1e":
-                new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, float("inf"))
+                new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 0)
             elif new_square.id == "8e":
-                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, float("inf"))
+                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 0)
             elif new_square.id == "1d":
                 new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
             elif new_square.id == "8d":
@@ -128,12 +129,12 @@ def make_squares():
 
 
 def make_side_squares():
-    global side_square_list, GRAY
+    global side_square_list, Green
     curr_num = "1"
     curr_letter = "a"
     for y in range(15, 115, 50):
         for x in range(0, 176, 25):
-            side_square_list.append(Square(curr_num + curr_letter, x, y, GRAY))
+            side_square_list.append(Square(curr_num + curr_letter, x, y, Green))
             inc(curr_letter)
         inc(curr_num)
 
@@ -141,7 +142,7 @@ def make_side_squares():
     curr_letter = "a"
     for y in range(500, 600, 50):
         for x in range(0, 176, 25):
-            side_square_list.append(Square(curr_num + curr_letter, x, y, GRAY))
+            side_square_list.append(Square(curr_num + curr_letter, x, y, Green))
             inc(curr_letter)
         inc(curr_num)
 
@@ -647,6 +648,7 @@ def predict_best_move(id, board):
 def path_values(id, board):
     best_move = None
     best_move_total = float("-inf")
+    enemy_id = "b" if id == "r" else "r"
 
     for itr_square in get_pieces_paths(id, board):
         potential_board = simulate_board(itr_square[0], itr_square[1], board)
@@ -658,14 +660,19 @@ def path_values(id, board):
         if in_check(potential_board) == id: # cannot move into check, move will not be considered
             continue
 
-        if itr_square[1].piece is None:  # initial values of moving, first instance of calculating choice value
+        # curr_score gives determines the value of moving a piece to a certain space
+        if checkmate(enemy_id, potential_board):
+            curr_score = 1000
+        elif in_check(potential_board) == enemy_id:
+            curr_score = 5
+        elif itr_square[1].piece is None:  # initial values of moving, first instance of calculating choice value
             curr_score = 0 - itr_square[0].piece.value
         else:
             curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
 
         # the best move for the enemy to take after this potential move has been executed
         # second instance of calculating choice value
-        enemy_id = "b" if id == "r" else "r"
+
         enemy_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
         curr_move_total = curr_score - enemy_move[1]
 
@@ -713,7 +720,7 @@ running = True
 square_active = False, None
 human_playing = True
 while running:
-    WINDOW.fill(GRAY)
+    WINDOW.fill(Green)
     blit_board()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
