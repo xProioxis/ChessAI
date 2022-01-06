@@ -8,6 +8,8 @@ pygame.font.init()
 WINDOW = pygame.display.set_mode((800, 600))
 pygame.display.set_caption('ChessAI')
 font = pygame.font.SysFont('BebasNeue-Regular.ttf', 40)
+small_font = pygame.font.SysFont('BebasNeue-Regular.ttf', 25)
+
 
 BLACK = (0, 0, 0)
 RED = (255, 87, 51)
@@ -179,6 +181,18 @@ def blit_highlight(square):
     pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y, 75, 10))
     pygame.draw.rect(WINDOW, YELLOW, (square.x, square.y + 65, 75, 10))
 
+def blit_labels():
+    letter = "a"
+    for x in range(201, 801, 75):
+        label = small_font.render(letter, True, BLACK)
+        WINDOW.blit(label, [x, 585])
+        letter = chr(ord(letter) + 1)
+
+    num = 8
+    for y in range(5, 605, 75):
+        label = small_font.render(f"{num}", True, BLACK)
+        WINDOW.blit(label, [200, y])
+        num -= 1
 
 def update_side_panel(square):
     global side_square_list, side_piece_offset_x, side_piece_offset_y
@@ -863,6 +877,8 @@ while running:
     else:
         AI_Player()
         human_playing = True
+
+    blit_labels()
 
 
 
