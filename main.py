@@ -78,6 +78,10 @@ def find_by_id(id, board):
     return None
 
 
+def percent_change(final_val, init_val):
+    return ((final_val - init_val) / init_val)
+
+
 def make_squares():
     global square_list, RED, WHITE, pawn_img, piece_x_offset, piece_y_offset
     id_letter = "a"
@@ -100,18 +104,25 @@ def make_squares():
             # piece id is formatted as "(piece color)(piece type)"
             if new_square.id[0] == "7":
                 new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 1)
+                pass
             elif new_square.id[0] == "2":
                 new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 1)
+                pass
             elif new_square.id == "1a" or new_square.id == "1h":
                 new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 5)
+                pass
             elif new_square.id == "8a" or new_square.id == "8h":
                 new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 5)
+                pass
             elif new_square.id == "1c" or new_square.id == "1f":
                 new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                pass
             elif new_square.id == "8c" or new_square.id == "8f":
                 new_square.piece = Piece("rb", red_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                pass
             elif new_square.id == "1b" or new_square.id == "1g":
                 new_square.piece = Piece("bk", black_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                pass
             elif new_square.id == "8b" or new_square.id == "8g":
                 new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
             elif new_square.id == "1e":
@@ -120,8 +131,10 @@ def make_squares():
                 new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 10)
             elif new_square.id == "1d":
                 new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
+                pass
             elif new_square.id == "8d":
                 new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
+                pass
             square_list.append(new_square)
 
             id_num -= 1
@@ -607,14 +620,14 @@ def get_pieces_paths(id, board):
     return possible_moves
 
 
-def possible_king_spaces(friend_id, board):
-    enemy_id = "r" if friend_id == "b" else "b"
+def possible_king_spaces(enemy_id, board):
+    friend_id = "r" if enemy_id == "b" else "b"
     sim_board = simulate_board(None, None, board)
-    enemy_paths = get_pieces_paths(enemy_id, sim_board)
+    enemy_paths = get_pieces_paths(friend_id, sim_board)
     # king cannot move onto its own pieces
     # will use this loop to find king and to find pos of all other friendly pieces
     for king_square in sim_board:
-        if king_square.piece is not None and king_square.piece.id == f"{friend_id}K":
+        if king_square.piece is not None and king_square.piece.id == f"{enemy_id}K":
             break
 
     # this method ignores that pawns cant attack from the fr
@@ -637,6 +650,9 @@ def possible_king_spaces(friend_id, board):
             blocked_paths.append(path[1])
 
     for blocked_square in blocked_paths:
+        if blocked_square.piece is not None and blocked_square.piece.id == f"{enemy_id}K":
+            # cannot block the space king is on, will lead to inaccurate calculations
+            continue
         blocked_square.id = "BLOCKED"
 
     search_queue = [king_square.id]
@@ -660,9 +676,17 @@ def possible_king_spaces(friend_id, board):
     return spaces_count
 
 
+def endgame_mode(enemy_id, board):
+    enemy_val = 0
+    for itr_square in board:
+        if itr_square.piece is not None and itr_square.piece.id[0] == enemy_id and itr_square.piece.id[1] != "K":
+            enemy_val += itr_square.piece.value
 
-
-
+    if enemy_val <= 5:
+        print("ENDGAME")
+        return True
+    else:
+        return False
 
 
 def predict_best_move(id, board):
@@ -702,8 +726,12 @@ def path_values(id, board):
     enemy_id = "b" if id == "r" else "r"
     equal_val_moves = []
 
+    in_endgame = endgame_mode("b", board)
+    if in_endgame:
+        prev_king_spaces = possible_king_spaces("b", board)
     for itr_square in get_pieces_paths(id, board):
         potential_board = simulate_board(itr_square[0], itr_square[1], board)
+
         if id in in_check(board):
             # if currently in check, next move must get king out of check or else it wont be considered
             if in_check(potential_board) == id:
@@ -726,6 +754,11 @@ def path_values(id, board):
             if itr_square[1].piece.id != "bK":
                 curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
 
+        if in_endgame:
+            curr_king_spaces = possible_king_spaces("b", potential_board)
+            spaces_reduced_award = 10 * -percent_change(curr_king_spaces, prev_king_spaces)
+            curr_score += spaces_reduced_award
+            print(spaces_reduced_award, itr_square[0].piece.id)
 
         # the best move for the enemy to take after this potential move has been executed
         # second instance of calculating choice value
@@ -805,7 +838,6 @@ while running:
 
     if human_playing:
         if not checkmate("b", square_list):
-            print(possible_king_spaces("b", square_list))
             if square_active[0]: # if a square is currently being clicked
                 if square_active[1].piece is not None:
                     for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
