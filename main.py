@@ -630,8 +630,6 @@ def possible_king_spaces(enemy_id, board):
         if king_square.piece is not None and king_square.piece.id == f"{enemy_id}K":
             break
 
-    # this method ignores that pawns cant attack from the fr
-    # blocking off all paths that would constitute a check for king
     blocked_paths = []
     for path in enemy_paths:
         if path[0].piece.id[1] == "p":
