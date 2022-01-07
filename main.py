@@ -127,6 +127,7 @@ def make_squares():
                 pass
             elif new_square.id == "8b" or new_square.id == "8g":
                 new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                pass
             elif new_square.id == "1e":
                 new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 2)
             elif new_square.id == "8e":
@@ -548,6 +549,41 @@ def get_path(square, board):
     return tuple(possible_spaces)
 
 
+def check_for_promote(id, board):
+    result = []
+    if id == "b":
+        curr_id = "8a"
+    else:
+        curr_id = "1a"
+
+    for i in range(8):
+        new_square = find_by_id(curr_id, board)
+        if new_square.piece is not None and new_square.piece.id == f"{id}p":
+            result.append(f"{id}")
+            result.append(new_square)
+            break
+        curr_id = curr_id[0] + inc(curr_id[1])
+
+    return tuple(result)
+
+def execute_promotion(choice, init_square): # change this if values of pieces are ever changed
+    new_id = init_square.piece.id[0] + choice
+    if new_id[1] == "q":
+        new_img = red_queen_img if new_id[0] == "r" else black_queen_img
+        new_value = 9
+    if new_id[1] == "r":
+        new_img = red_rook_img if new_id[0] == "r" else black_rook_img
+        new_value = 5
+    if new_id[1] == "b":
+        new_img = red_bishop_img if new_id[0] == "r" else black_bishop_img
+        new_value = 3
+    if new_id[1] == "k":
+        new_img = red_knight_img if new_id[0] == "r" else black_knight_img
+        new_value = 3
+
+    #  Piece(old_square.piece.id, old_square.piece.img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, old_square.piece.value)
+    init_square.piece = Piece(new_id, new_img, init_square.piece.x, init_square.piece.y, new_value)
+
 def in_check(board):
     result = []
     for new_square in board:
@@ -594,6 +630,7 @@ def game_over(winner):
                 if event.key == pygame.K_ESCAPE:
                     on_end_screen = False
         blit_board()
+        blit_labels()
         checkmate_text = font.render("Checkmate!", True, BLACK)
         game_over_text = font.render(winner + " Wins!", True, BLACK)
         WINDOW.blit(checkmate_text, (20, 275))
@@ -764,7 +801,8 @@ def path_values(id, board):
             curr_score = 0 - itr_square[0].piece.value
         else:
             if itr_square[1].piece.id != "bK":
-                curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
+                curr_score = itr_square[1].piece.value - itr_square[
+                    0].piece.value  # prioritizes moving least valuable pieces first
 
         if in_endgame:
             curr_king_spaces = possible_king_spaces("b", potential_board)
@@ -777,7 +815,7 @@ def path_values(id, board):
 
         if check:
             next_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
-            if next_move[1] < 0: # must change this if it is decided that
+            if next_move[1] < 0:  # must change this if it is decided that
                 # if enemy is negatively affected by the check, the check will be valued, otherwise check has no value
                 curr_score += 5
 
@@ -841,12 +879,23 @@ human_playing = True
 while running:
     WINDOW.fill(GREEN)
     blit_board()
+    choice = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            if event.key == pygame.K_q:
+                choice = "q"
+            elif event.key == pygame.K_r:
+                choice = "r"
+
+            elif event.key == pygame.K_k:
+                choice = "k"
+
+            elif event.key == pygame.K_b:
+                choice = "b"
 
     if human_playing:
         if not checkmate("b", square_list):
@@ -875,8 +924,16 @@ while running:
             game_over("Red")
 
     else:
-        AI_Player()
-        human_playing = True
+        picking_promotion = False
+        can_promote = check_for_promote("b", square_list)
+        if "b" in can_promote:
+            picking_promotion = True
+            if choice is not None:
+                execute_promotion(choice, can_promote[1])
+                picking_promotion = False
+        if not picking_promotion:
+            AI_Player()
+            human_playing = True
 
     blit_labels()
 
