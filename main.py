@@ -105,16 +105,16 @@ def make_squares():
             # setting pieces for each square on board
             # piece id is formatted as "(piece color)(piece type)"
             if new_square.id[0] == "7":
-                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 1)
+                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 1)
                 pass
             elif new_square.id[0] == "2":
-                new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 1)
+                new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 1)
                 pass
             elif new_square.id == "1a" or new_square.id == "1h":
-                new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 5)
+                new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 5)
                 pass
             elif new_square.id == "8a" or new_square.id == "8h":
-                new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 5)
+                new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 5)
                 pass
             elif new_square.id == "1c" or new_square.id == "1f":
                 new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
@@ -224,11 +224,15 @@ def swap_pieces(old_square, new_square):
     old_square.piece = None
 
 
-def get_path(square, board):
+def get_path(square, board, draw_over=False):
+    # in chess, pieces are not able to take their own pieces, so normally this function considers this
+    # but if the default parameter draw_over is made true, then this rule will be ignored
+    # this is useful for the possible_king_spaces function when determining where king can traverse
     global square_list
     possible_spaces = []
     if square.piece.id[1] == "p": # pawn
         # space in front
+        # not implementing draw_over here because check is incongruous with its normal path
         if square.piece.id[0] == "b":
             new_square = find_by_id(inc(square.id[0]) + square.id[1], board)
         else:
@@ -278,7 +282,7 @@ def get_path(square, board):
         for new_square in board:
             if new_square.id in knight_movements:
                 if new_square.piece is not None:
-                    if new_square.piece.id[0] == square.piece.id[0]:
+                    if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                         continue
                 possible_spaces.append(new_square)
 
@@ -293,7 +297,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], i) + square.id[1], board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             up = False
                         else:
                             possible_spaces.append(new_square)
@@ -307,7 +311,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], -i) + square.id[1], board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             down = False
                         else:
                             possible_spaces.append(new_square)
@@ -321,7 +325,7 @@ def get_path(square, board):
                 new_square = find_by_id(square.id[0] + inc(square.id[1], -i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             left = False
                         else:
                             possible_spaces.append(new_square)
@@ -335,7 +339,7 @@ def get_path(square, board):
                 new_square = find_by_id(square.id[0] + inc(square.id[1], i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             right = False
                         else:
                             possible_spaces.append(new_square)
@@ -357,7 +361,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:  # if opposing piece is of same color
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:  # if opposing piece is of same color
                             top_right = False
                         else:
                             possible_spaces.append(new_square)
@@ -371,7 +375,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], -i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             top_left = False
                         else:
                             possible_spaces.append(new_square)
@@ -385,7 +389,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             bottom_right = False
                         else:
                             possible_spaces.append(new_square)
@@ -399,7 +403,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], -i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             bottom_left = False
                         else:
                             possible_spaces.append(new_square)
@@ -424,7 +428,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]: # if opposing piece is of same color
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over: # if opposing piece is of same color
                             top_right = False
                         else:
                             possible_spaces.append(new_square)
@@ -438,7 +442,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], -i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             top_left = False
                         else:
                             possible_spaces.append(new_square)
@@ -452,7 +456,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             bottom_right = False
                         else:
                             possible_spaces.append(new_square)
@@ -466,7 +470,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], -i) + inc(square.id[1], -i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             bottom_left = False
                         else:
                             possible_spaces.append(new_square)
@@ -480,7 +484,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], i) + square.id[1], board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             up = False
                         else:
                             possible_spaces.append(new_square)
@@ -494,7 +498,7 @@ def get_path(square, board):
                 new_square = find_by_id(inc(square.id[0], -i) + square.id[1], board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             down = False
                         else:
                             possible_spaces.append(new_square)
@@ -508,7 +512,7 @@ def get_path(square, board):
                 new_square = find_by_id(square.id[0] + inc(square.id[1], -i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             left = False
                         else:
                             possible_spaces.append(new_square)
@@ -522,7 +526,7 @@ def get_path(square, board):
                 new_square = find_by_id(square.id[0] + inc(square.id[1], i), board)
                 if new_square is not None:
                     if new_square.piece is not None:
-                        if new_square.piece.id[0] == square.piece.id[0]:
+                        if new_square.piece.id[0] == square.piece.id[0] and not draw_over:
                             right = False
                         else:
                             possible_spaces.append(new_square)
@@ -541,7 +545,7 @@ def get_path(square, board):
             new_square = find_by_id(inc(square.id[0], incs[0]) + inc(square.id[1], incs[1]), board)
             if new_square is not None:
                 if new_square.piece is not None:
-                    if new_square.piece.id[0] != square.piece.id[0]:
+                    if new_square.piece.id[0] != square.piece.id[0] or draw_over:
                         possible_spaces.append(new_square)
                 else:
                     possible_spaces.append(new_square)
@@ -610,11 +614,15 @@ def simulate_board(old_square, new_square, board):
 
 
 def checkmate(id, board):
-    for itr_square in board:
-        if itr_square.piece is not None and itr_square.piece.id[0] == id:
-            for path in get_path(itr_square, board):
-                if id not in in_check(simulate_board(itr_square, path, board)):
-                    return False
+
+    if id in in_check(board): # must be in check currently to be in checkmate
+        for itr_square in board:
+            if itr_square.piece is not None and itr_square.piece.id[0] == id:
+                for path in get_path(itr_square, board):
+                    if id not in in_check(simulate_board(itr_square, path, board)):
+                        return False
+    else:
+        return False
 
     return True
 
@@ -623,6 +631,7 @@ def game_over(winner):
     global font
     on_end_screen = True
     while on_end_screen:
+        possible_king_spaces("b", square_list)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_end_screen = False
@@ -658,13 +667,15 @@ def game_over(winner):
             if itr_square.piece is not None and itr_square.piece.id[0] == "b":
                 for path in get_path(itr_square, board):'''
 
-def get_pieces_paths(id, board):
+def get_pieces_paths(id, board, draw_over=False):
+    # draw over explained further in the first comment of get_path() function
+    # furthermore, if draw_over is True in this function, it will draw over the king
     possible_moves = []
     if checkmate(id, board) != id:
         for new_square in board:
             if new_square.piece is not None and new_square.piece.id[0] == id:
-                for path in get_path(new_square, board):
-                    if path.piece is not None and path.piece.id[1] == "K": # fix this to allow it to get out of check
+                for path in get_path(new_square, board, draw_over):
+                    if path.piece is not None and path.piece.id[1] == "K" and not draw_over: # fix this to allow it to get out of check
                         continue
                     possible_moves.append([new_square, path])
 
@@ -674,12 +685,17 @@ def get_pieces_paths(id, board):
 def possible_king_spaces(enemy_id, board):
     friend_id = "r" if enemy_id == "b" else "b"
     sim_board = simulate_board(None, None, board)
-    enemy_paths = get_pieces_paths(friend_id, sim_board)
+    enemy_paths = get_pieces_paths(friend_id, sim_board, True)
+    king_accounted = False
+    # paths need to be drawn over so that king cannot take out a piece and illegally move into check
+    spaces_count = 0
     # king cannot move onto its own pieces
     # will use this loop to find king and to find pos of all other friendly pieces
     for king_square in sim_board:
         if king_square.piece is not None and king_square.piece.id == f"{enemy_id}K":
             break
+    king_id = king_square.id
+
 
     blocked_paths = []
     for path in enemy_paths:
@@ -688,32 +704,32 @@ def possible_king_spaces(enemy_id, board):
             # can only check diagonally, so this must be manually done in this loop
             new_square = find_by_id(inc(path[0].id[0], -1) + inc(path[0].id[1], 1), sim_board)
             if new_square is not None:
-                #print("blocked", new_square.id)
+                # print("blocked", new_square.id)
                 blocked_paths.append(new_square)
 
             new_square = find_by_id(inc(path[0].id[0], -1) + inc(path[0].id[1], -1), sim_board)
             if new_square is not None:
-                #print("blocked", new_square.id)
+                # print("blocked", new_square.id)
                 blocked_paths.append(new_square)
         else:
             blocked_paths.append(path[1])
 
     for blocked_square in blocked_paths:
-        if blocked_square.piece is not None and blocked_square.piece.id == f"{enemy_id}K":
-            # cannot block the space king is on, will lead to inaccurate calculations
-            continue
+        if blocked_square.id == king_square.id and not king_accounted:
+            spaces_count -= 1
+            king_accounted = True
         blocked_square.id = "BLOCKED"
 
-    search_queue = [king_square.id]
-    king_square.id = "COUNTED"
-    spaces_count = 0
+
+    search_queue = [king_id]
+
+
     while len(search_queue) > 0:
         spaces_count += 1
         curr_id = search_queue.pop(0)
-        #print(curr_id)
         search_area = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
         # will search in a circle around current piece
-        for inc_id in search_area: # increment id
+        for inc_id in search_area:  # increment id
             new_square = find_by_id(inc(curr_id[0], inc_id[0]) + inc(curr_id[1], inc_id[1]), sim_board)
             if new_square is not None:
                 if new_square.piece is not None and new_square.piece.id[0] == "b":
@@ -721,7 +737,6 @@ def possible_king_spaces(enemy_id, board):
                 search_queue.append(new_square.id)
                 new_square.id = "COUNTED"
 
-    #print("==========================================================================")
     return spaces_count
 
 
@@ -772,6 +787,7 @@ def path_values(id, board):
     best_move = None
     best_move_total = float("-inf")
     check = False
+    can_promote = False
     enemy_id = "b" if id == "r" else "r"
     equal_val_moves = []
 
@@ -794,6 +810,10 @@ def path_values(id, board):
             check = True
             curr_score = 0
 
+        if id in check_for_promote(id, potential_board):
+            can_promote = True
+            curr_score = 0
+
         # curr_score gives determines the value of moving a piece to a certain space
         if checkmate(enemy_id, potential_board):
             curr_score = 1000
@@ -801,27 +821,40 @@ def path_values(id, board):
             curr_score = 0 - itr_square[0].piece.value
         else:
             if itr_square[1].piece.id != "bK":
-                curr_score = itr_square[1].piece.value - itr_square[
-                    0].piece.value  # prioritizes moving least valuable pieces first
+                curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
 
         if in_endgame:
             curr_king_spaces = possible_king_spaces("b", potential_board)
+            if curr_king_spaces == 1:
+                if not checkmate(enemy_id, potential_board):
+                    continue
             spaces_reduced_award = 10 * -percent_change(curr_king_spaces, prev_king_spaces)
             curr_score += spaces_reduced_award
             print(spaces_reduced_award, itr_square[0].piece.id)
 
         # the best move for the enemy to take after this potential move has been executed
         # second instance of calculating choice value
+        enemy_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
 
         if check:
-            next_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
-            if next_move[1] < 0:  # must change this if it is decided that
+            if enemy_move[1] < 0:  # must change this if it is decided that
                 # if enemy is negatively affected by the check, the check will be valued, otherwise check has no value
                 curr_score += 5
 
             check = False
 
-        enemy_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
+        if can_promote:
+            if enemy_move[1] < 0:  # must change this if it is decided that
+                # if AI is positively affected by the promote, the check will be valued, otherwise check has no value
+                curr_score += 9
+
+            can_promote = False
+
+        # will reward this movement more if remaining stagnant will benefit the enemy
+        stagnant_move = predict_best_move(enemy_id, simulate_board(None, None, board))
+        if stagnant_move[1] > 0:
+            curr_score += 3
+
         curr_move_total = curr_score - enemy_move[1]
 
         if curr_move_total > best_move_total:
@@ -898,6 +931,11 @@ while running:
                 choice = "b"
 
     if human_playing:
+        possible_king_spaces("b", square_list)
+
+        if "r" in check_for_promote("r", square_list): # if AI is able to promote a piece
+            execute_promotion("q", check_for_promote("r", square_list)[1]) # use that piece to promote to a Queen always
+
         if not checkmate("b", square_list):
             if square_active[0]: # if a square is currently being clicked
                 if square_active[1].piece is not None:
@@ -925,11 +963,11 @@ while running:
 
     else:
         picking_promotion = False
-        can_promote = check_for_promote("b", square_list)
-        if "b" in can_promote:
+        player_can_promote = check_for_promote("b", square_list)
+        if "b" in player_can_promote:
             picking_promotion = True
             if choice is not None:
-                execute_promotion(choice, can_promote[1])
+                execute_promotion(choice, player_can_promote[1])
                 picking_promotion = False
         if not picking_promotion:
             AI_Player()
