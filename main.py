@@ -105,7 +105,7 @@ def make_squares():
             # setting pieces for each square on board
             # piece id is formatted as "(piece color)(piece type)"
             if new_square.id[0] == "7":
-                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 1)
+                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 2)
                 pass
             elif new_square.id[0] == "2":
                 new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 1)
@@ -129,14 +129,14 @@ def make_squares():
                 new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
                 pass
             elif new_square.id == "1e":
-                new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 2)
+                new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
             elif new_square.id == "8e":
-                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 10)
+                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
             elif new_square.id == "1d":
-                new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
+                new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 6)
                 pass
             elif new_square.id == "8d":
-                new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 9)
+                new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 6)
                 pass
             square_list.append(new_square)
 
@@ -627,11 +627,24 @@ def checkmate(id, board):
     return True
 
 
-def game_over(winner):
+def stale_mate(id, board):
+    if checkmate(id, board):
+        return False
+
+    pieces_and_paths = get_pieces_paths(id, board)
+
+    for itr_square in pieces_and_paths: # if all possible movements result in check, then it is a stalemate
+        if id not in in_check(simulate_board(itr_square[0], itr_square[1], board)):
+            return False
+
+    print("stalemate")
+    return True
+
+
+def game_over(winner=None):
     global font
     on_end_screen = True
     while on_end_screen:
-        possible_king_spaces("b", square_list)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 on_end_screen = False
@@ -640,10 +653,14 @@ def game_over(winner):
                     on_end_screen = False
         blit_board()
         blit_labels()
-        checkmate_text = font.render("Checkmate!", True, BLACK)
-        game_over_text = font.render(winner + " Wins!", True, BLACK)
-        WINDOW.blit(checkmate_text, (20, 275))
-        WINDOW.blit(game_over_text, (22.5, 300))
+        if winner is not None:
+            checkmate_text = font.render("Checkmate!", True, BLACK)
+            game_over_text = font.render(winner + " Wins!", True, BLACK)
+            WINDOW.blit(checkmate_text, (20, 275))
+            WINDOW.blit(game_over_text, (22.5, 300))
+        else:
+            stalemate_text = font.render("Stalemate!", True, BLACK)
+            WINDOW.blit(stalemate_text, (20, 275))
         pygame.display.update()
 
     pygame.quit()
@@ -855,6 +872,10 @@ def path_values(id, board):
         if stagnant_move[1] > 0:
             curr_score += 3
 
+        # will reward just the king moving, this is preferable to moving another piece in most cases
+        if id in in_check(board) and itr_square[0].piece.id[1] == "K":
+            curr_score += 3
+
         curr_move_total = curr_score - enemy_move[1]
 
         if curr_move_total > best_move_total:
@@ -875,7 +896,13 @@ def AI_Player():
     global square_list
     ai_possible_moves = []  # will contain all red pieces and their paths
 
-    if not checkmate("r", square_list):
+    if checkmate("r", square_list):
+        game_over("Black")
+        return
+    elif stale_mate("r", square_list):
+        game_over("Black")
+        return
+    else:
         # this section calculates the point advantage to moving pieces to certain spaces
         best_move = path_values("r", square_list)
 
@@ -895,9 +922,6 @@ def AI_Player():
         swap_pieces(best_move[0][0], best_move[0][1])
         return
 
-    else:
-        game_over("Black")
-        return
 
 
 make_squares()
@@ -936,7 +960,11 @@ while running:
         if "r" in check_for_promote("r", square_list): # if AI is able to promote a piece
             execute_promotion("q", check_for_promote("r", square_list)[1]) # use that piece to promote to a Queen always
 
-        if not checkmate("b", square_list):
+        if checkmate("b", square_list):
+            game_over("Red")
+        elif stale_mate("b", square_list):
+            game_over("Red")
+        else:
             if square_active[0]: # if a square is currently being clicked
                 if square_active[1].piece is not None:
                     for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
@@ -958,18 +986,14 @@ while running:
                     square_active = False, None
             else:
                 square_active = square_selected() # will determine if square is being clicked
-        else:
-            game_over("Red")
 
     else:
-        picking_promotion = False
         player_can_promote = check_for_promote("b", square_list)
         if "b" in player_can_promote:
             picking_promotion = True
             if choice is not None:
                 execute_promotion(choice, player_can_promote[1])
-                picking_promotion = False
-        if not picking_promotion:
+        else:
             AI_Player()
             human_playing = True
 
