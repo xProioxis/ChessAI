@@ -766,7 +766,17 @@ def endgame_mode(enemy_id, board):
         print("ENDGAME")
         return True
     else:
-        return False
+        friend_id = "r" if enemy_id == "b" else "r"
+        friend_val = 0
+
+        for itr_square in board:
+            if itr_square.piece is not None and itr_square.piece.id[0] == friend_id and itr_square.piece.id[1] != "K":
+                friend_val += itr_square.piece.value
+
+        if abs(friend_val - enemy_val) <= 3 and max(friend_val, enemy_val) < 8:
+            return True
+
+    return False
 
 
 def predict_best_move(id, board):
@@ -792,14 +802,14 @@ def predict_best_move(id, board):
             best_score = curr_score
             best_move = possible_moves[x]
 
-    if best_move[0].piece.id[1] == "p" and best_move[0].id[0] == "7" and best_score == -1:
+    '''if best_move[0].piece.id[1] == "p" and best_move[0].id[0] == "7" and best_score == -1:
         all_pawns = []
         for itr_square in possible_moves:
             if itr_square[0].piece.id == "rp":
                 all_pawns.append(itr_square)
 
         random_num = random.randint(0, len(all_pawns) - 1)
-        best_move = all_pawns[random_num]
+        best_move = all_pawns[random_num]'''
 
     return best_move, best_score
 
