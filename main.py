@@ -26,7 +26,6 @@ piece_x_offset = 10
 piece_y_offset = 12
 side_piece_offset_x = 10
 side_piece_offset_y = 12
-board_border = [0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 24, 32, 40, 48, 56, 15, 23, 31, 39, 47, 55, 63, 57, 58, 59, 60, 61, 62]
 
 black_pawn_img = pygame.image.load('Assets/BlackPawn.png')
 red_pawn_img = pygame.image.load('Assets/RedPawn.png')
@@ -114,19 +113,19 @@ def make_squares():
                 new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 5)
                 pass
             elif new_square.id == "8a" or new_square.id == "8h":
-                new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 5)
+                new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 6)
                 pass
             elif new_square.id == "1c" or new_square.id == "1f":
                 new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
                 pass
             elif new_square.id == "8c" or new_square.id == "8f":
-                new_square.piece = Piece("rb", red_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                new_square.piece = Piece("rb", red_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
                 pass
             elif new_square.id == "1b" or new_square.id == "1g":
                 new_square.piece = Piece("bk", black_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
                 pass
             elif new_square.id == "8b" or new_square.id == "8g":
-                new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
                 pass
             elif new_square.id == "1e":
                 new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
@@ -136,7 +135,7 @@ def make_squares():
                 new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 6)
                 pass
             elif new_square.id == "8d":
-                new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 6)
+                new_square.piece = Piece("rq", red_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 7)
                 pass
             square_list.append(new_square)
 
@@ -778,11 +777,16 @@ def predict_best_move(id, board):
     for x in range(len(possible_moves)):
         curr_score = 0
 
+        can_promote = id in check_for_promote(id, board)
         if possible_moves[x][1].piece is None:  # initial values of moving, first instance of calculating choice value
-            # curr_score += 0 - possible_moves[x][0].piece.value
+            curr_score += 0 - possible_moves[x][0].piece.value
             pass
         else:
             curr_score += possible_moves[x][1].piece.value - possible_moves[x][0].piece.value  # prioritizes moving least valuable pieces first
+
+        if can_promote:
+            curr_score += 6
+            can_promote = False
 
         if curr_score > best_score:
             best_score = curr_score
@@ -863,14 +867,16 @@ def path_values(id, board):
         if can_promote:
             if enemy_move[1] < 0:  # must change this if it is decided that
                 # if AI is positively affected by the promote, the check will be valued, otherwise check has no value
-                curr_score += 9
+                curr_score += 6
 
             can_promote = False
 
         # will reward this movement more if remaining stagnant will benefit the enemy
-        stagnant_move = predict_best_move(enemy_id, simulate_board(None, None, board))
-        if stagnant_move[1] > 0:
-            curr_score += 3
+        # only computer for very valuable pieces (Queen and Rook)
+        if itr_square[0].piece.id[1] == "r" or itr_square[0].piece.id[1] == "q":
+            stagnant_move = predict_best_move(enemy_id, simulate_board(None, None, board))
+            if stagnant_move[1] >= 2:
+                curr_score += 5
 
         # will reward just the king moving, this is preferable to moving another piece in most cases
         if id in in_check(board) and itr_square[0].piece.id[1] == "K":
@@ -900,7 +906,7 @@ def AI_Player():
         game_over("Black")
         return
     elif stale_mate("r", square_list):
-        game_over("Black")
+        game_over()
         return
     else:
         # this section calculates the point advantage to moving pieces to certain spaces
@@ -963,7 +969,7 @@ while running:
         if checkmate("b", square_list):
             game_over("Red")
         elif stale_mate("b", square_list):
-            game_over("Red")
+            game_over()
         else:
             if square_active[0]: # if a square is currently being clicked
                 if square_active[1].piece is not None:
