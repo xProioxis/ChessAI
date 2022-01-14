@@ -19,7 +19,6 @@ YELLOW = (255, 240, 31)
 
 square_list = [] # will act as the main board
 side_square_list = []
-piece_list = []
 total_moves = 0
 
 piece_x_offset = 10
@@ -130,7 +129,7 @@ def make_squares():
             elif new_square.id == "1e":
                 new_square.piece = Piece("bK", black_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
             elif new_square.id == "8e":
-                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
+                new_square.piece = Piece("rK", red_king_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 7)
             elif new_square.id == "1d":
                 new_square.piece = Piece("bq", black_queen_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 6)
                 pass
@@ -773,7 +772,8 @@ def endgame_mode(enemy_id, board):
             if itr_square.piece is not None and itr_square.piece.id[0] == friend_id and itr_square.piece.id[1] != "K":
                 friend_val += itr_square.piece.value
 
-        if abs(friend_val - enemy_val) <= 3 and max(friend_val, enemy_val) < 8:
+        if enemy_val + 5 <= friend_val and max(friend_val, enemy_val) < 8:
+            print("ENDGAME")
             return True
 
     return False
@@ -827,6 +827,7 @@ def path_values(id, board):
         prev_king_spaces = possible_king_spaces("b", board)
     for itr_square in get_pieces_paths(id, board):
         potential_board = simulate_board(itr_square[0], itr_square[1], board)
+        enemy_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
 
         if id in in_check(board):
             # if currently in check, next move must get king out of check or else it wont be considered
@@ -851,11 +852,14 @@ def path_values(id, board):
         elif itr_square[1].piece is None:  # initial values of moving, first instance of calculating choice value
             curr_score = 0 - itr_square[0].piece.value
         else:
-            if itr_square[1].piece.id != "bK":
-                curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
+            if itr_square[1].piece.id != f"{enemy_id}K":
+                if enemy_move[1] < 0:
+                    curr_score = 0
+                else:
+                    curr_score = itr_square[1].piece.value - itr_square[0].piece.value  # prioritizes moving least valuable pieces first
 
         if in_endgame:
-            curr_king_spaces = possible_king_spaces("b", potential_board)
+            curr_king_spaces = possible_king_spaces(enemy_id, potential_board)
             if curr_king_spaces == 1:
                 if not checkmate(enemy_id, potential_board):
                     continue
@@ -865,7 +869,7 @@ def path_values(id, board):
 
         # the best move for the enemy to take after this potential move has been executed
         # second instance of calculating choice value
-        enemy_move = predict_best_move(enemy_id, simulate_board(itr_square[0], itr_square[1], board))
+
 
         if check:
             if enemy_move[1] < 0:  # must change this if it is decided that
@@ -981,6 +985,9 @@ while running:
         elif stale_mate("b", square_list):
             game_over()
         else:
+            """if "b" in in_check(square_list):
+                check_text = font.render("Check!", True, BLACK)
+                WINDOW.blit(check_text, (45, 280))"""
             if square_active[0]: # if a square is currently being clicked
                 if square_active[1].piece is not None:
                     for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
