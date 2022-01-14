@@ -1,7 +1,18 @@
 import random
 import time
-
+import sys
+import os
 import pygame
+
+def resource_path(relative_path):
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 pygame.init()
 pygame.font.init()
@@ -26,18 +37,42 @@ piece_y_offset = 12
 side_piece_offset_x = 10
 side_piece_offset_y = 12
 
-black_pawn_img = pygame.image.load('Assets/BlackPawn.png')
-red_pawn_img = pygame.image.load('Assets/RedPawn.png')
-black_rook_img = pygame.image.load('Assets/BlackRook.png')
-red_rook_img = pygame.image.load('Assets/RedRook.png')
-black_bishop_img = pygame.image.load('Assets/BlackBishop.png')
-red_bishop_img = pygame.image.load('Assets/RedBishop.png')
-black_knight_img = pygame.image.load('Assets/BlackKnight.png')
-red_knight_img = pygame.image.load('Assets/RedKnight.png')
-black_king_img = pygame.image.load('Assets/BlackKing.png')
-red_king_img = pygame.image.load('Assets/RedKing.png')
-black_queen_img = pygame.image.load('Assets/BlackQueen.png')
-red_queen_img = pygame.image.load('Assets/RedQueen.png')
+
+bp_img = resource_path("Assets/BlackPawn.png")
+black_pawn_img = pygame.image.load(bp_img)
+
+rp_img = resource_path("Assets/RedPawn.png")
+red_pawn_img = pygame.image.load(rp_img)
+
+br_img = resource_path("Assets/BlackRook.png")
+black_rook_img = pygame.image.load(br_img)
+
+rr_img = resource_path("Assets/RedRook.png")
+red_rook_img = pygame.image.load(rr_img)
+
+bb_img = resource_path('Assets/BlackBishop.png')
+black_bishop_img = pygame.image.load(bb_img)
+
+rb_img = resource_path('Assets/RedBishop.png')
+red_bishop_img = pygame.image.load(rb_img)
+
+bk_img = resource_path('Assets/BlackKnight.png')
+black_knight_img = pygame.image.load(bk_img)
+
+rk_img = resource_path('Assets/RedKnight.png')
+red_knight_img = pygame.image.load(rk_img)
+
+bK_img = resource_path('Assets/BlackKing.png')
+black_king_img = pygame.image.load(bK_img)
+
+rK_img = resource_path('Assets/RedKing.png')
+red_king_img = pygame.image.load(rK_img)
+
+bq_img = resource_path('Assets/BlackQueen.png')
+black_queen_img = pygame.image.load(bq_img)
+
+rq_img = resource_path('Assets/RedQueen.png')
+red_queen_img = pygame.image.load(rq_img)
 
 pygame.display.set_icon(red_knight_img)
 
@@ -762,7 +797,6 @@ def endgame_mode(enemy_id, board):
             enemy_val += itr_square.piece.value
 
     if enemy_val <= 5:
-        print("ENDGAME")
         return True
     else:
         friend_id = "r" if enemy_id == "b" else "r"
@@ -773,7 +807,6 @@ def endgame_mode(enemy_id, board):
                 friend_val += itr_square.piece.value
 
         if enemy_val + 5 <= friend_val and max(friend_val, enemy_val) < 8:
-            print("ENDGAME")
             return True
 
     return False
@@ -865,7 +898,6 @@ def path_values(id, board):
                     continue
             spaces_reduced_award = 10 * -percent_change(curr_king_spaces, prev_king_spaces)
             curr_score += spaces_reduced_award
-            print(spaces_reduced_award, itr_square[0].piece.id)
 
         # the best move for the enemy to take after this potential move has been executed
         # second instance of calculating choice value
@@ -1013,7 +1045,10 @@ while running:
     else:
         player_can_promote = check_for_promote("b", square_list)
         if "b" in player_can_promote:
-            picking_promotion = True
+            promote_text = small_font.render("Press The First Letter", True, BLACK)
+            promote_text2 = small_font.render("of Desired Piece", True, BLACK)
+            WINDOW.blit(promote_text, (10, 275))
+            WINDOW.blit(promote_text2, (30, 290))
             if choice is not None:
                 execute_promotion(choice, player_can_promote[1])
         else:
