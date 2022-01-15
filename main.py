@@ -1051,26 +1051,26 @@ while running:
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         enemy_paths_pieces = get_pieces_paths("r", square_list)
                         for rook in rook_list:
-                            blit_highlight(rook)
-                            if (rook.x < mouse_x < rook.x + 75) and (rook.y < mouse_y < rook.y + 75) and pygame.mouse.get_pressed()[0]:
-                                if rook.id == "1a":
-                                    if find_by_id("1b", square_list).piece is None and find_by_id("1c",square_list).piece is None and find_by_id("1d", square_list).piece is None:
-                                        path_clear = True
-                                        for enemy_path in enemy_paths_pieces:
+                            if rook.id == "1a":
+                                if find_by_id("1b", square_list).piece is None and find_by_id("1c",square_list).piece is None and find_by_id("1d", square_list).piece is None:
+                                    path_clear = True
+                                    for enemy_path in enemy_paths_pieces:
 
-                                            if enemy_path[0].piece.id[1] == "p":
-                                                # pawns paths are ability to check is (for most cases) inconsistent with its path
-                                                # can only check diagonally, so this must be manually done in this loop
-                                                if inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1c" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1d" \
-                                                        or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1c" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1d":
-                                                    path_clear = False
-                                                    break
-
-                                            elif enemy_path[1].id == "1c" or enemy_path[1].id == "1d":
+                                        if enemy_path[0].piece.id[1] == "p":
+                                            # pawns paths are ability to check is (for most cases) inconsistent with its path
+                                            # can only check diagonally, so this must be manually done in this loop
+                                            if inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1c" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1d" \
+                                                    or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1c" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1d":
                                                 path_clear = False
                                                 break
 
-                                        if path_clear:
+                                        elif enemy_path[1].id == "1c" or enemy_path[1].id == "1d":
+                                            path_clear = False
+                                            break
+
+                                    if path_clear:
+                                        blit_highlight(rook)
+                                        if (rook.x < mouse_x < rook.x + 75) and (rook.y < mouse_y < rook.y + 75) and pygame.mouse.get_pressed()[0]:
                                             square_active[1].piece.moved = True
                                             castled = True
                                             swap_pieces(square_active[1], find_by_id("1c", square_list))
@@ -1079,24 +1079,26 @@ while running:
                                             human_playing = False
                                             time.sleep(.1)
                                             break
-                                else:
-                                    if find_by_id("1f", square_list).piece is None and find_by_id("1g",square_list).piece is None:
-                                        path_clear = True
-                                        for enemy_path in enemy_paths_pieces:
+                            else:
+                                if find_by_id("1f", square_list).piece is None and find_by_id("1g",square_list).piece is None:
+                                    path_clear = True
+                                    for enemy_path in enemy_paths_pieces:
 
-                                            if enemy_path[0].piece.id[1] == "p":
-                                                # pawns paths are ability to check is (for most cases) inconsistent with its path
-                                                # can only check diagonally, so this must be manually done in this loop
-                                                if inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1f" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1g" \
-                                                        or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1f" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1g":
-                                                    path_clear = False
-                                                    break
-
-                                            elif enemy_path[1].id == "1f" or enemy_path[1].id == "1g":
+                                        if enemy_path[0].piece.id[1] == "p":
+                                            # pawns paths are ability to check is (for most cases) inconsistent with its path
+                                            # can only check diagonally, so this must be manually done in this loop
+                                            if inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1f" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], 1) == "1g" \
+                                                    or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1f" or inc(enemy_path[0].id[0], -1) + inc(enemy_path[0].id[1], -1) == "1g":
                                                 path_clear = False
                                                 break
 
-                                        if path_clear:
+                                        elif enemy_path[1].id == "1f" or enemy_path[1].id == "1g":
+                                                path_clear = False
+                                                break
+
+                                    if path_clear:
+                                        blit_highlight(rook)
+                                        if (rook.x < mouse_x < rook.x + 75) and (rook.y < mouse_y < rook.y + 75) and pygame.mouse.get_pressed()[0]:
                                             square_active[1].piece.moved = True
                                             castled = True
                                             swap_pieces(square_active[1], find_by_id("1g", square_list))
