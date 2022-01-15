@@ -139,10 +139,10 @@ def make_squares():
             # setting pieces for each square on board
             # piece id is formatted as "(piece color)(piece type)"
             if new_square.id[0] == "7":
-                new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 2)
+                # new_square.piece = Piece("rp", red_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 2)
                 pass
             elif new_square.id[0] == "2":
-                new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 1)
+                # new_square.piece = Piece("bp", black_pawn_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 1)
                 pass
             elif new_square.id == "1a" or new_square.id == "1h":
                 new_square.piece = Piece("br", black_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 5)
@@ -151,13 +151,13 @@ def make_squares():
                 new_square.piece = Piece("rr", red_rook_img, new_square.x - piece_x_offset,new_square.y - piece_y_offset, 6)
                 pass
             elif new_square.id == "1c" or new_square.id == "1f":
-                new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                # new_square.piece = Piece("bb", black_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
                 pass
             elif new_square.id == "8c" or new_square.id == "8f":
                 new_square.piece = Piece("rb", red_bishop_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
                 pass
             elif new_square.id == "1b" or new_square.id == "1g":
-                new_square.piece = Piece("bk", black_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
+                # new_square.piece = Piece("bk", black_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 3)
                 pass
             elif new_square.id == "8b" or new_square.id == "8g":
                 new_square.piece = Piece("rk", red_knight_img, new_square.x - piece_x_offset, new_square.y - piece_y_offset, 4)
