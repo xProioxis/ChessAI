@@ -1027,6 +1027,8 @@ while running:
                     # main movement logic
                     for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
                         castled = False
+                        if "b" in in_check(simulate_board(square_active[1], square, square_list)):
+                            continue
                         blit_highlight(square)
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         if (square.x < mouse_x < square.x + 75) and (square.y < mouse_y < square.y + 75) and pygame.mouse.get_pressed()[0]:
