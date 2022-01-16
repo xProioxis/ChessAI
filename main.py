@@ -325,8 +325,9 @@ def get_path(square, board, draw_over=False):
         left = True
         right = True
         down = True
+        i = 1
 
-        for i in range(1, 9):
+        while up or down or left or right:
             if up:
                 new_square = find_by_id(inc(square.id[0], i) + square.id[1], board)
                 if new_square is not None:
@@ -383,14 +384,17 @@ def get_path(square, board, draw_over=False):
                 else:  # if square doe not exists, path has gone off of board and will stop
                     right = False
 
+            i += 1
+
 
     elif square.piece.id[1] == "b": # bishop
         top_right = True
         top_left = True
         bottom_right = True
         bottom_left = True
+        i = 1
 
-        for i in range(1, 9):
+        while top_right or top_left or bottom_right or bottom_left:
             if top_right:
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i), board)
                 if new_square is not None:
@@ -447,6 +451,8 @@ def get_path(square, board, draw_over=False):
                 else: # if square doe not exists, path has gone off of board and will stop
                     bottom_left = False
 
+            i += 1
+
     elif square.piece.id[1] == "q": # queen
         top_right = True
         top_left = True
@@ -456,8 +462,9 @@ def get_path(square, board, draw_over=False):
         left = True
         right = True
         down = True
+        i = 1
 
-        for i in range(1, 9):
+        while top_right or top_left or bottom_right or bottom_left or up or left or right or down:
             if top_right:
                 new_square = find_by_id(inc(square.id[0], i) + inc(square.id[1], i), board)
                 if new_square is not None:
@@ -569,6 +576,8 @@ def get_path(square, board, draw_over=False):
                         possible_spaces.append(new_square)
                 else:  # if square doe not exists, path has gone off of board and will stop
                     right = False
+
+            i += 1
 
     elif square.piece.id[1] == "K":  # King
 
