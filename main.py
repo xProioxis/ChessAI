@@ -576,7 +576,6 @@ def get_path(square, board, draw_over=False):
                         possible_spaces.append(new_square)
                 else:  # if square doe not exists, path has gone off of board and will stop
                     right = False
-
             i += 1
 
     elif square.piece.id[1] == "K":  # King
@@ -1034,11 +1033,9 @@ while running:
             if square_active[0]: # if a square is currently being clicked
                 if square_active[1].piece is not None:
                     # main movement logic
-                    piece_paths = list(get_path(square_active[1], square_list))
-                    for square in piece_paths: # will return the possible spaces a piece can move
+                    for square in get_path(square_active[1], square_list): # will return the possible spaces a piece can move
                         castled = False
                         if "b" in in_check(simulate_board(square_active[1], square, square_list)):
-                            piece_paths.remove(square)
                             continue
                         blit_highlight(square)
                         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -1054,10 +1051,6 @@ while running:
                                 human_playing = False
                                 time.sleep(.1)
                                 break
-
-                    if len(piece_paths) < 1:
-                        square_active = False, None
-
                     # castling logic
                     if square_active[1] is not None and square_active[1].piece is not None and not square_active[1].piece.moved and square_active[1].piece.id == "bK" and "b" not in in_check(square_list):
                         rook_list = []
